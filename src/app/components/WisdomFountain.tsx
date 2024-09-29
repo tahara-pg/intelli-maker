@@ -20,7 +20,6 @@ import {
   Sparkles,
   BookOpen,
   User,
-  Lightbulb,
   Trophy,
   RefreshCw,
   MessageSquare,
@@ -28,6 +27,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Skeleton } from "@/components/ui/skeleton";
+import Image from "next/image";
 
 // Gemini APIの設定
 const genAI = new GoogleGenerativeAI(
@@ -94,7 +94,6 @@ export default function WisdomFountain() {
   const [glossary, setGlossary] = useState<GlossaryItem[]>([]);
   const [keyPersons, setKeyPersons] = useState<KeyPerson[]>([]);
   const [showResults, setShowResults] = useState(false);
-  const [praise, setPraise] = useState("");
   const [currentQuote, setCurrentQuote] = useState(initialQuotes[0]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -113,17 +112,6 @@ export default function WisdomFountain() {
     }, 5000);
     return () => clearInterval(interval);
   }, []);
-
-  useEffect(() => {
-    const praises = [
-      "知識は宝物、集めるほど豊かになる",
-      "頭がよくなると、夢が叶いやすくなる",
-      "賢くなれば、仲間が増える",
-      "賢い人は、困った人を助けられる",
-      "学べば学ぶほど、楽しいことが増える",
-    ];
-    setPraise(praises[Math.floor(Math.random() * praises.length)]);
-  }, [showResults]);
 
   useEffect(() => {
     console.log("Updated Phrases:", phrases);
@@ -162,6 +150,14 @@ export default function WisdomFountain() {
       throw new Error("JSONの解析に失敗しました");
     }
   };
+
+  // anyの使用を避けるため、型を明示的に定義します
+  interface PhraseItem {
+    quote: string;
+    background: string;
+    rating: number;
+    tags: string[];
+  }
 
   const generatePhrases = async () => {
     setPhrasesLoading(true);
@@ -216,7 +212,7 @@ export default function WisdomFountain() {
         throw new Error("Invalid phrases structure in response");
       }
 
-      const newPhrases = phrasesJson.phrases.map((item: any) => ({
+      const newPhrases = phrasesJson.phrases.map((item: PhraseItem) => ({
         quote: item.quote,
         background: item.background.replace(/<\/?keyword>/g, ""), // <keyword>タグを削除
         rating: item.rating,
@@ -299,6 +295,15 @@ export default function WisdomFountain() {
     }
   };
 
+  // anyの使用を避けるため、型を明示的に定義します
+  interface KeyPersonItem {
+    name: string;
+    description: string;
+    twitter: string;
+    linkedin: string;
+    website: string;
+  }
+
   const generateKeyPersons = async () => {
     setKeyPersonsLoading(true);
     setKeyPersonsError(null);
@@ -337,7 +342,7 @@ export default function WisdomFountain() {
         const keyPersonJson = cleanAndParseJSON(keyPersonText);
         console.log("Parsed key person JSON:", keyPersonJson);
         const newKeyPersons = Array.isArray(keyPersonJson.keyPersons)
-          ? keyPersonJson.keyPersons.map((person: any) => ({
+          ? keyPersonJson.keyPersons.map((person: KeyPersonItem) => ({
               ...person,
               image: "https://placehold.jp/100x100.png",
             }))
@@ -612,7 +617,7 @@ export default function WisdomFountain() {
                           {keyPersons.map((person, index) => (
                             <TableRow key={index}>
                               <TableCell>
-                                <img
+                                <Image
                                   src={person.image}
                                   alt={`${person.name}の画像`}
                                   width={40}
