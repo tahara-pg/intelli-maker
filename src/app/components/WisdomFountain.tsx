@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/table";
 import {
   Star,
-  Volume2,
   Twitter,
   Linkedin,
   Globe,
@@ -373,12 +372,6 @@ export default function WisdomFountain() {
     setIsLoading(false);
   };
 
-  const speakPhrase = (phrase: string) => {
-    const utterance = new SpeechSynthesisUtterance(phrase);
-    utterance.lang = "ja-JP";
-    speechSynthesis.speak(utterance);
-  };
-
   const renderStars = (rating: number) => {
     return Array(5)
       .fill(0)
@@ -508,12 +501,6 @@ export default function WisdomFountain() {
                             </div>
                             <div className="flex items-center">
                               {renderStars(phrase.rating)}
-                              <button
-                                onClick={() => speakPhrase(phrase.quote)}
-                                className="ml-2 text-purple-600 hover:text-purple-800 p-1"
-                              >
-                                <Volume2 className="w-4 h-4" />
-                              </button>
                             </div>
                           </div>
                         </div>
