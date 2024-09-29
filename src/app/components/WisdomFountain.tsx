@@ -242,7 +242,7 @@ export default function WisdomFountain() {
 
       // 用語集の生成
       const glossaryPrompt = `
-キーワード「${keyword}」に関連する8つの重要な用語とその素人にもわかる詳しい100文字以上の説明を生成してください。
+キーワード「${keyword}」に関連する8つの重要な用語とその素人にもわかる詳しい100文字以上の説明を生成してください。人物名は含めないでください。
 以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
 
 {
@@ -407,7 +407,7 @@ export default function WisdomFountain() {
               className={`font-bold text-gray-800 ${
                 showResults
                   ? "text-2xl"
-                  : "text-5xl md:text-6xl text-center mb-8"
+                  : "text-5xl md:text-6xl text-center mt-24 mb-16"
               }`}
               initial={false}
               animate={{
@@ -420,10 +420,10 @@ export default function WisdomFountain() {
             </motion.h1>
 
             <motion.div
-              className={`${showResults ? "w-1/2" : "w-full max-w-xl"}`}
+              className={`${showResults ? "w-2/3" : "w-full max-w-2xl"}`}
               initial={false}
               animate={{
-                width: showResults ? "50%" : "100%",
+                width: showResults ? "66.666667%" : "100%",
               }}
               transition={{ duration: 0.5 }}
             >
@@ -431,7 +431,7 @@ export default function WisdomFountain() {
                 <AnimatePresence mode="wait">
                   <motion.p
                     key={currentQuote}
-                    className="text-2xl text-purple-600 italic mb-8 text-center"
+                    className="text-2xl text-purple-600 italic mb-16 text-center"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
@@ -464,18 +464,18 @@ export default function WisdomFountain() {
           >
             <div className="bg-white rounded-lg shadow-md border border-purple-100">
               <div className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
-                <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                <h2 className="text-xl font-semibold text-gray-800 tracking-wider flex items-center">
                   <MessageSquare className="w-5 h-5 mr-2" />
                   生成されたセリフ
                 </h2>
               </div>
-              <div className="py-3 px-4">
+              <div className="py-6 px-4">
                 {phrasesLoading ? (
                   <PhrasesSkeletonLoader />
                 ) : phrasesError ? (
                   <ErrorCard error={phrasesError} retry={generatePhrases} />
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {phrases.map((phrase, index) => (
                       <div
                         key={index}
@@ -484,7 +484,7 @@ export default function WisdomFountain() {
                         <div className="py-3 px-4 bg-gradient-to-r from-purple-50 to-blue-50 flex justify-between items-center">
                           <div className="flex items-center justify-between w-full">
                             <div className="flex items-center">
-                              <h3 className="text-base text-purple-800 flex items-center">
+                              <h3 className="text-base text-purple-800 tracking-wide flex items-center">
                                 <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
                                 セリフ {index + 1}
                               </h3>
@@ -530,7 +530,7 @@ export default function WisdomFountain() {
             <div className="space-y-4">
               <Card className="bg-white rounded-lg shadow-md border border-purple-200">
                 <CardHeader className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
-                  <CardTitle className="text-xl text-gray-800 flex items-center">
+                  <CardTitle className="text-xl text-gray-800 tracking-wider flex items-center">
                     <BookOpen className="w-5 h-5 mr-2" />
                     関連用語集
                   </CardTitle>
@@ -577,7 +577,7 @@ export default function WisdomFountain() {
                 keyPersons.length > 0 && (
                   <Card className="bg-white rounded-lg shadow-md border border-purple-200">
                     <CardHeader className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
-                      <CardTitle className="text-xl text-gray-800 flex items-center">
+                      <CardTitle className="text-xl text-gray-800 tracking-wider flex items-center">
                         <Brain className="w-5 h-5 mr-2" />
                         キーパーソン
                       </CardTitle>
@@ -680,7 +680,7 @@ function SearchInput({
   isLoading,
 }: SearchInputProps) {
   return (
-    <div className="relative">
+    <div className="relative w-full">
       <Input
         type="text"
         placeholder="キーワードを入力"
@@ -695,17 +695,17 @@ function SearchInput({
             generateContent();
           }
         }}
-        className="w-full pr-12 border-2 border-purple-300 focus:border-purple-500 rounded-full py-2 px-4 text-base bg-white text-purple-800 placeholder-purple-400"
+        className="w-full h-16 pr-16 border-2 border-purple-300 focus:border-purple-500 rounded-full py-3 px-6 text-xl bg-white text-purple-800 placeholder-purple-400"
       />
       <Button
         onClick={generateContent}
         disabled={!keyword.trim() || isLoading}
-        className="absolute right-1 top-1 rounded-full bg-purple-500 hover:bg-purple-600 text-white p-1"
+        className="absolute right-6 top-1/2 transform -translate-y-1/2 rounded-full bg-purple-500 hover:bg-purple-600 text-white p-2"
       >
         {isLoading ? (
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
         ) : (
-          <Sparkles className="w-5 h-5" />
+          <Sparkles className="w-6 h-6" />
         )}
       </Button>
     </div>
@@ -766,7 +766,7 @@ function KeyPersonsSkeletonLoader() {
   return (
     <Card className="bg-white rounded-lg shadow-md border border-purple-200">
       <CardHeader className="bg-gradient-to-r from-purple-200 to-blue-200">
-        <CardTitle className="text-xl text-gray-800 flex items-center">
+        <CardTitle className="text-xl text-gray-800 tracking-wider flex items-center">
           <Brain className="w-5 h-5 mr-2" />
           キーパーソン
         </CardTitle>
