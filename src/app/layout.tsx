@@ -15,7 +15,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "あなた、賢いわ！",
+  title: "インテリメーカー 〜賢いは作れる〜",
   description: "知識を深め、賢くなるためのアプリ",
   robots: {
     index: false,

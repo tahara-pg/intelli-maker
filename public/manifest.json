@@ -1,6 +1,6 @@
 {
-  "name": "あなた、賢いわ！",
-  "short_name": "賢いわ！",
+  "name": "インテリメーカー 〜賢いは作れる〜",
+  "short_name": "インテリメーカー",
   "description": "知識を深め、賢くなるためのアプリ",
   "start_url": "/",
   "display": "standalone",

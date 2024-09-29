@@ -416,7 +416,10 @@ export default function WisdomFountain() {
               }}
               transition={{ duration: 0.5 }}
             >
-              あなた、賢いわ！
+              インテリメーカー{" "}
+              <span className={`${showResults ? "text-base" : "text-lg"}`}>
+                〜賢いは作れる〜
+              </span>
             </motion.h1>
 
             <motion.div
