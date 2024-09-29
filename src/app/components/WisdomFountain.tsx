@@ -506,7 +506,7 @@ export default function WisdomFountain() {
                           </div>
                         </div>
                         <div className="py-2 px-4">
-                          <p className="text-base font-semibold text-purple-800">
+                          <p className="text-base font-semibold text-purple-800 leading-7">
                             {phrase.quote
                               .split(/<keyword>|<\/keyword>/)
                               .map((part, i) =>
@@ -547,7 +547,7 @@ export default function WisdomFountain() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="text-purple-800 w-1/4">
+                          <TableHead className="text-purple-800 w-1/3">
                             用語
                           </TableHead>
                           <TableHead className="text-purple-800">
@@ -558,7 +558,7 @@ export default function WisdomFountain() {
                       <TableBody>
                         {glossary.map((item, index) => (
                           <TableRow key={index}>
-                            <TableCell className="font-bold text-gray-800">
+                            <TableCell className="font-bold text-purple-800 text-lg">
                               {item.term}
                             </TableCell>
                             <TableCell className="text-gray-700">
@@ -615,7 +615,7 @@ export default function WisdomFountain() {
                                   className="rounded-full border-2 border-purple-100"
                                 />
                               </TableCell>
-                              <TableCell className="font-bold text-gray-800">
+                              <TableCell className="font-bold text-purple-800 text-lg">
                                 {person.name}
                               </TableCell>
                               <TableCell className="text-gray-700">
