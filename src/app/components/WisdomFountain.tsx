@@ -174,6 +174,8 @@ export default function WisdomFountain() {
       const phrasesPrompt = `
 キーワード「${keyword}」について、マニアやクライアントから「こいつわかってるな」「お、そんなことまで知ってるんだ」「君、賢いね」と思わせるような、短くて知り合いに話すようなセリフを5つ生成してください。各セリフには素人にもわかる詳しい200文字以上の背景説明と内容に応じた推奨度を付けてください。
 
+セリフの中で重要なキーワードや専門用語や大事なポイントには<keyword>タグを付けてください。例: <keyword>重要な用語</keyword>
+
 以下の4つのタグを当てはまる場合にのみ付けてください：
 - トレンド：最新の動向や流行を示す情報
 - 問題提起：業界や分野における課題や問題点を指摘する情報
@@ -187,14 +189,14 @@ export default function WisdomFountain() {
 {
   "phrases": [
     {
-      "quote": "セリフ1",
-      "background": "背景説明1",
+      "quote": "セリフ1（<keyword>タグ付き）",
+      "background": "背景説明1（<keyword>タグ無し）",
       "rating": 5,
       "tags": ["トレンド", "競合情報"]
     },
     {
-      "quote": "セリフ2",
-      "background": "背景説明2",
+      "quote": "セリフ2（<keyword>タグ付き）",
+      "background": "背景説明2（<keyword>タグ無し）",
       "rating": 4.5,
       "tags": ["問題提起"]
     }
@@ -218,7 +220,7 @@ export default function WisdomFountain() {
         quote: item.quote,
         background: item.background,
         rating: item.rating,
-        tags: item.tags || [], // タグを追加
+        tags: item.tags || [],
       }));
 
       setPhrases(newPhrases);
@@ -242,7 +244,7 @@ export default function WisdomFountain() {
 
       // 用語集の生成
       const glossaryPrompt = `
-キーワード「${keyword}」に関連する8つの重要な用語とその素人にもわかる詳しい100文字以上の説明を生成してください。人物名は含めないでください。
+キーワード「${keyword}」に関連する8つの重要な用語（人物名は含めないでください）とその素人にもわかる詳しい100文字以上の説明を生成してください。
 以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
 
 {
@@ -517,7 +519,17 @@ export default function WisdomFountain() {
                         </div>
                         <div className="py-2 px-4">
                           <p className="text-base font-semibold text-purple-800">
-                            {phrase.quote}
+                            {phrase.quote
+                              .split(/<keyword>|<\/keyword>/)
+                              .map((part, i) =>
+                                i % 2 === 0 ? (
+                                  part
+                                ) : (
+                                  <span key={i} className="text-2xl font-bold">
+                                    {part}
+                                  </span>
+                                )
+                              )}
                           </p>
                           <p className="text-sm text-gray-600 mt-2">
                             {phrase.background}
