@@ -77,15 +77,15 @@ interface SearchInputProps {
 const getTagColor = (tag: string) => {
   switch (tag) {
     case "トレンド":
-      return "bg-blue-500 text-white";
+      return "bg-blue-100 text-blue-800";
     case "問題提起":
-      return "bg-red-500 text-white";
+      return "bg-red-100 text-red-800";
     case "競合情報":
-      return "bg-green-500 text-white";
+      return "bg-green-100 text-green-800";
     case "表彰・称賛":
-      return "bg-purple-500 text-white";
+      return "bg-purple-100 text-purple-800";
     default:
-      return "bg-gold-500 text-navy-900";
+      return "bg-gray-100 text-gray-800";
   }
 };
 
@@ -391,7 +391,7 @@ export default function WisdomFountain() {
   };
 
   return (
-    <div className="min-h-screen bg-navy-900 text-gold-100 py-6 relative overflow-y-auto">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-6 relative overflow-y-auto">
       <div className="container mx-auto px-4 relative z-10">
         <AnimatePresence mode="wait">
           <motion.div
@@ -404,7 +404,7 @@ export default function WisdomFountain() {
             } justify-between mb-8`}
           >
             <motion.h1
-              className={`font-bold text-gold-400 ${
+              className={`font-bold text-gray-800 ${
                 showResults
                   ? "text-2xl"
                   : "text-5xl md:text-6xl text-center mb-8"
@@ -431,7 +431,7 @@ export default function WisdomFountain() {
                 <AnimatePresence mode="wait">
                   <motion.p
                     key={currentQuote}
-                    className="text-2xl text-gold-300 italic mb-8 text-center"
+                    className="text-2xl text-purple-600 italic mb-8 text-center"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
@@ -462,14 +462,14 @@ export default function WisdomFountain() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4"
           >
-            <Card className="bg-navy-800 border border-gold-500">
-              <CardHeader className="py-3 px-4 bg-gradient-to-r from-navy-900 to-navy-800">
-                <CardTitle className="text-base text-gold-400 flex items-center">
+            <div className="bg-white rounded-lg shadow-md border border-purple-100">
+              <div className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
+                <h2 className="text-xl font-semibold text-gray-800 flex items-center">
                   <MessageSquare className="w-5 h-5 mr-2" />
                   生成されたセリフ
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="py-3 px-4">
+                </h2>
+              </div>
+              <div className="py-3 px-4">
                 {phrasesLoading ? (
                   <PhrasesSkeletonLoader />
                 ) : phrasesError ? (
@@ -477,24 +477,24 @@ export default function WisdomFountain() {
                 ) : (
                   <div className="space-y-4">
                     {phrases.map((phrase, index) => (
-                      <Card
+                      <div
                         key={index}
-                        className="bg-navy-800 border border-gold-500"
+                        className="bg-white rounded-lg shadow-sm border border-purple-100"
                       >
-                        <CardHeader className="py-3 px-4 bg-gradient-to-r from-navy-900 to-navy-800 flex justify-between items-center">
+                        <div className="py-3 px-4 bg-gradient-to-r from-purple-50 to-blue-50 flex justify-between items-center">
                           <div className="flex items-center justify-between w-full">
                             <div className="flex items-center">
-                              <CardTitle className="text-base text-gold-400 flex items-center">
-                                <Trophy className="w-5 h-5 mr-2 text-gold-400" />
+                              <h3 className="text-base text-purple-800 flex items-center">
+                                <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
                                 セリフ {index + 1}
-                              </CardTitle>
-                              <div className="flex ml-4">
+                              </h3>
+                              <div className="flex ml-6">
                                 {phrase.tags.map((tag, tagIndex) => (
                                   <span
                                     key={tagIndex}
                                     className={`text-xs font-bold ${getTagColor(
                                       tag
-                                    )} px-2 py-0.5 rounded-full mr-1`}
+                                    )} px-2 py-0.5 rounded-full mr-3`}
                                   >
                                     {tag}
                                   </span>
@@ -503,36 +503,34 @@ export default function WisdomFountain() {
                             </div>
                             <div className="flex items-center">
                               {renderStars(phrase.rating)}
-                              <Button
-                                variant="ghost"
-                                size="sm"
+                              <button
                                 onClick={() => speakPhrase(phrase.quote)}
-                                className="ml-2 text-gold-400 hover:text-gold-300 p-1"
+                                className="ml-2 text-purple-600 hover:text-purple-800 p-1"
                               >
                                 <Volume2 className="w-4 h-4" />
-                              </Button>
+                              </button>
                             </div>
                           </div>
-                        </CardHeader>
-                        <CardContent className="py-2 px-4">
-                          <p className="text-base font-semibold text-gold-300">
+                        </div>
+                        <div className="py-2 px-4">
+                          <p className="text-base font-semibold text-purple-800">
                             {phrase.quote}
                           </p>
-                          <p className="text-sm text-gold-200 mt-2">
+                          <p className="text-sm text-gray-600 mt-2">
                             {phrase.background}
                           </p>
-                        </CardContent>
-                      </Card>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             <div className="space-y-4">
-              <Card className="bg-navy-800 border border-gold-500">
-                <CardHeader className="py-3 px-4 bg-gradient-to-r from-navy-900 to-navy-800">
-                  <CardTitle className="text-base text-gold-400 flex items-center">
+              <Card className="bg-white rounded-lg shadow-md border border-purple-200">
+                <CardHeader className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
+                  <CardTitle className="text-xl text-gray-800 flex items-center">
                     <BookOpen className="w-5 h-5 mr-2" />
                     関連用語集
                   </CardTitle>
@@ -546,19 +544,21 @@ export default function WisdomFountain() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="text-gold-400 w-1/4">
+                          <TableHead className="text-purple-800 w-1/4">
                             用語
                           </TableHead>
-                          <TableHead className="text-gold-400">定義</TableHead>
+                          <TableHead className="text-purple-800">
+                            定義
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {glossary.map((item, index) => (
                           <TableRow key={index}>
-                            <TableCell className="font-medium text-gold-300">
+                            <TableCell className="font-bold text-gray-800">
                               {item.term}
                             </TableCell>
-                            <TableCell className="text-gold-200">
+                            <TableCell className="text-gray-700">
                               {item.definition}
                             </TableCell>
                           </TableRow>
@@ -575,9 +575,9 @@ export default function WisdomFountain() {
                 <ErrorCard error={keyPersonsError} retry={generateKeyPersons} />
               ) : (
                 keyPersons.length > 0 && (
-                  <Card className="bg-navy-800 border border-gold-500">
-                    <CardHeader className="py-3 px-4 bg-gradient-to-r from-navy-900 to-navy-800">
-                      <CardTitle className="text-base text-gold-400 flex items-center">
+                  <Card className="bg-white rounded-lg shadow-md border border-purple-200">
+                    <CardHeader className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
+                      <CardTitle className="text-xl text-gray-800 flex items-center">
                         <Brain className="w-5 h-5 mr-2" />
                         キーパーソン
                       </CardTitle>
@@ -586,16 +586,16 @@ export default function WisdomFountain() {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead className="text-gold-400 w-16">
+                            <TableHead className="text-purple-800 w-16">
                               写真
                             </TableHead>
-                            <TableHead className="text-gold-400 w-1/4">
+                            <TableHead className="text-purple-800 w-1/4">
                               名前
                             </TableHead>
-                            <TableHead className="text-gold-400">
+                            <TableHead className="text-purple-800">
                               説明
                             </TableHead>
-                            <TableHead className="text-gold-400 w-24">
+                            <TableHead className="text-purple-800 w-24">
                               リンク
                             </TableHead>
                           </TableRow>
@@ -609,13 +609,13 @@ export default function WisdomFountain() {
                                   alt={`${person.name}の画像`}
                                   width={40}
                                   height={40}
-                                  className="rounded-full border-2 border-gold-500"
+                                  className="rounded-full border-2 border-purple-100"
                                 />
                               </TableCell>
-                              <TableCell className="font-medium text-gold-300">
+                              <TableCell className="font-bold text-gray-800">
                                 {person.name}
                               </TableCell>
-                              <TableCell className="text-gold-200">
+                              <TableCell className="text-gray-700">
                                 {person.description}
                               </TableCell>
                               <TableCell>
@@ -624,7 +624,7 @@ export default function WisdomFountain() {
                                     href={person.twitter}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-gold-400 hover:text-gold-300"
+                                    className="text-gray-600 hover:text-gray-800"
                                   >
                                     <Twitter className="w-4 h-4" />
                                   </a>
@@ -632,7 +632,7 @@ export default function WisdomFountain() {
                                     href={person.linkedin}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-gold-400 hover:text-gold-300"
+                                    className="text-gray-600 hover:text-gray-800"
                                   >
                                     <Linkedin className="w-4 h-4" />
                                   </a>
@@ -640,7 +640,7 @@ export default function WisdomFountain() {
                                     href={person.website}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-gold-400 hover:text-gold-300"
+                                    className="text-gray-600 hover:text-gray-800"
                                   >
                                     <Globe className="w-4 h-4" />
                                   </a>
@@ -695,15 +695,15 @@ function SearchInput({
             generateContent();
           }
         }}
-        className="w-full pr-12 border-2 border-gold-500 focus:border-gold-300 rounded-full py-2 px-4 text-base bg-navy-800 text-gold-100 placeholder-gold-400"
+        className="w-full pr-12 border-2 border-purple-300 focus:border-purple-500 rounded-full py-2 px-4 text-base bg-white text-purple-800 placeholder-purple-400"
       />
       <Button
         onClick={generateContent}
         disabled={!keyword.trim() || isLoading}
-        className="absolute right-1 top-1 rounded-full bg-gold-500 hover:bg-gold-600 text-navy-900 p-1"
+        className="absolute right-1 top-1 rounded-full bg-purple-500 hover:bg-purple-600 text-white p-1"
       >
         {isLoading ? (
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-navy-900"></div>
+          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
         ) : (
           <Sparkles className="w-5 h-5" />
         )}
@@ -718,9 +718,9 @@ function PhrasesSkeletonLoader() {
       {[1, 2, 3].map((_, index) => (
         <Card
           key={index}
-          className="mb-6 overflow-hidden bg-navy-800 border border-gold-500"
+          className="mb-6 overflow-hidden bg-white rounded-lg shadow-sm border border-purple-100"
         >
-          <CardHeader className="bg-gradient-to-r from-navy-900 to-navy-800">
+          <CardHeader className="p-6 bg-gradient-to-r from-purple-50 to-blue-50">
             <Skeleton className="h-6 w-1/3" />
           </CardHeader>
           <CardContent className="p-6">
@@ -738,10 +738,10 @@ function GlossarySkeletonLoader() {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="text-gold-400">
+          <TableHead className="text-purple-800">
             <Skeleton className="h-4 w-16" />
           </TableHead>
-          <TableHead className="text-gold-400">
+          <TableHead className="text-purple-800">
             <Skeleton className="h-4 w-32" />
           </TableHead>
         </TableRow>
@@ -764,9 +764,9 @@ function GlossarySkeletonLoader() {
 
 function KeyPersonsSkeletonLoader() {
   return (
-    <Card className="bg-navy-800 border border-gold-500">
-      <CardHeader className="bg-gradient-to-r from-navy-900 to-navy-800">
-        <CardTitle className="text-base text-gold-400 flex items-center">
+    <Card className="bg-white rounded-lg shadow-md border border-purple-200">
+      <CardHeader className="bg-gradient-to-r from-purple-200 to-blue-200">
+        <CardTitle className="text-xl text-gray-800 flex items-center">
           <Brain className="w-5 h-5 mr-2" />
           キーパーソン
         </CardTitle>
