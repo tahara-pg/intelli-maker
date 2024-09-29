@@ -17,6 +17,10 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "あなた、賢いわ！",
   description: "知識を深め、賢くなるためのアプリ",
+  robots: {
+    index: false,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
