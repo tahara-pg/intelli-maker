@@ -464,7 +464,7 @@ export default function WisdomFountain() {
               <div className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
                 <h2 className="text-xl font-semibold text-gray-800 tracking-wider flex items-center">
                   <MessageSquare className="w-5 h-5 mr-2" />
-                  生成されたセリフ
+                  賢く聞こえるセリフ
                 </h2>
               </div>
               <div className="py-6 px-4">
@@ -534,7 +534,7 @@ export default function WisdomFountain() {
                 <CardHeader className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
                   <CardTitle className="text-xl text-gray-800 tracking-wider flex items-center">
                     <BookOpen className="w-5 h-5 mr-2" />
-                    関連用語集
+                    関連用語
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="py-3 px-4">
