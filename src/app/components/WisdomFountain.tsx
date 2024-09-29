@@ -312,21 +312,26 @@ export default function WisdomFountain() {
 
       // キーパーソンの生成
       const keyPersonPrompt = `
-キーワード「${keyword}」に関連する重要な人物を5人選び、その人物の名前、素人にもわかる詳しい100文字以上の説明、TwitterとLinkedInのURL、公式ウェブサイトのURLを生成してください。
+キーワード「${keyword}」に関連する重要な人物を5人選び、以下の情報を生成してください：
+1. その人物の名前
+2. 素人にもわかる詳しい100文字以上の説明（その人物の経歴や業績に加え、キーワード「${keyword}」との関連性も含めてください）
+3. TwitterとLinkedInのURL
+4. 公式ウェブサイトのURL
+
 以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
 
 {
   "keyPersons": [
     {
       "name": "人物名1",
-      "description": "人物の説明1",
+      "description": "人物の説明1（キーワードとの関連性を含む）",
       "twitter": "https://twitter.com/example1",
       "linkedin": "https://www.linkedin.com/in/example1",
       "website": "https://example1.com"
     },
     {
       "name": "人物名2",
-      "description": "人物の説明2",
+      "description": "人物の説明2（キーワードとの関連性を含む）",
       "twitter": "https://twitter.com/example2",
       "linkedin": "https://www.linkedin.com/in/example2",
       "website": "https://example2.com"
