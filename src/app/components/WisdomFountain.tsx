@@ -19,7 +19,7 @@ import {
   Globe,
   Sparkles,
   BookOpen,
-  Brain,
+  User,
   Lightbulb,
   Trophy,
   RefreshCw,
@@ -505,8 +505,8 @@ export default function WisdomFountain() {
                             </div>
                           </div>
                         </div>
-                        <div className="py-2 px-4">
-                          <p className="text-base font-semibold text-purple-800 leading-7">
+                        <div className="pt-4 pb-6 px-4">
+                          <p className="text-lg font-semibold text-purple-800 leading-8">
                             {phrase.quote
                               .split(/<keyword>|<\/keyword>/)
                               .map((part, i) =>
@@ -581,7 +581,7 @@ export default function WisdomFountain() {
                   <Card className="bg-white rounded-lg shadow-md border border-purple-200">
                     <CardHeader className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
                       <CardTitle className="text-xl text-gray-800 tracking-wider flex items-center">
-                        <Brain className="w-5 h-5 mr-2" />
+                        <User className="w-5 h-5 mr-2" />
                         キーパーソン
                       </CardTitle>
                     </CardHeader>
@@ -770,7 +770,7 @@ function KeyPersonsSkeletonLoader() {
     <Card className="bg-white rounded-lg shadow-md border border-purple-200">
       <CardHeader className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
         <CardTitle className="text-xl text-gray-800 tracking-wider flex items-center">
-          <Brain className="w-5 h-5 mr-2" />
+          <User className="w-5 h-5 mr-2" />
           キーパーソン
         </CardTitle>
       </CardHeader>
