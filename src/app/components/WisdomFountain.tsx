@@ -174,6 +174,7 @@ export default function WisdomFountain() {
 キーワード「${keyword}」について、マニアやクライアントから「こいつわかってるな」「お、そんなことまで知ってるんだ」「君、賢いね」と思わせるような、短くて知り合いに話すようなセリフを5つ生成してください。各セリフには素人にもわかる詳しい200文字以上の背景説明と内容に応じた推奨度を付けてください。
 
 セリフの中で重要なキーワードや専門用語や大事なポイントには<keyword>タグを付けてください。例: <keyword>重要な用語</keyword>
+背景説明には<keyword>タグを使用しないでください。
 
 以下の4つのタグを当てはまる場合にのみ付けてください：
 - トレンド：最新の動向や流行を示す情報
@@ -189,13 +190,13 @@ export default function WisdomFountain() {
   "phrases": [
     {
       "quote": "セリフ1（<keyword>タグ付き）",
-      "background": "背景説明1（<keyword>タグ無し）",
+      "background": "背景説明1（タグなし）",
       "rating": 5,
       "tags": ["トレンド", "競合情報"]
     },
     {
       "quote": "セリフ2（<keyword>タグ付き）",
-      "background": "背景説明2（<keyword>タグ無し）",
+      "background": "背景説明2（タグなし）",
       "rating": 4.5,
       "tags": ["問題提起"]
     }
@@ -217,7 +218,7 @@ export default function WisdomFountain() {
 
       const newPhrases = phrasesJson.phrases.map((item: any) => ({
         quote: item.quote,
-        background: item.background,
+        background: item.background.replace(/<\/?keyword>/g, ""), // <keyword>タグを削除
         rating: item.rating,
         tags: item.tags || [],
       }));
