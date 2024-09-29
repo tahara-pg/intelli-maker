@@ -40,6 +40,7 @@ interface Phrase {
   quote: string;
   background: string;
   rating: number;
+  tags: string[]; // 新しいタグフィールドを追加
 }
 
 interface GlossaryItem {
@@ -71,6 +72,22 @@ interface SearchInputProps {
   generateContent: () => void;
   isLoading: boolean;
 }
+
+// タグの色を定義する関数を更新
+const getTagColor = (tag: string) => {
+  switch (tag) {
+    case "トレンド":
+      return "bg-blue-500 text-white";
+    case "問題提起":
+      return "bg-red-500 text-white";
+    case "競合情報":
+      return "bg-green-500 text-white";
+    case "表彰・称賛":
+      return "bg-purple-500 text-white";
+    default:
+      return "bg-gold-500 text-navy-900";
+  }
+};
 
 export default function WisdomFountain() {
   const [keyword, setKeyword] = useState("");
@@ -153,10 +170,18 @@ export default function WisdomFountain() {
     try {
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-      // フレーズの生成
-      console.log("Sending request for phrases...");
+      // フレーズの生成プロンプトを更新
       const phrasesPrompt = `
 キーワード「${keyword}」について、マニアやクライアントから「こいつわかってるな」「お、そんなことまで知ってるんだ」「君、賢いね」と思わせるような、短くて知り合いに話すようなセリフを5つ生成してください。各セリフには素人にもわかる詳しい200文字以上の背景説明と内容に応じた推奨度を付けてください。
+
+以下の4つのタグを当てはまる場合にのみ付けてください：
+- トレンド：最新の動向や流行を示す情報
+- 問題提起：業界や分野における課題や問題点を指摘する情報
+- 競合情報：競合他社や競合製品に関する洞察
+- 表彰・称賛：業界内での評価や成果に関する情報
+
+これらのタグに関連する情報を含むセリフを優先的に生成してください。
+
 以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
 
 {
@@ -164,12 +189,14 @@ export default function WisdomFountain() {
     {
       "quote": "セリフ1",
       "background": "背景説明1",
-      "rating": 5
+      "rating": 5,
+      "tags": ["トレンド", "競合情報"]
     },
     {
       "quote": "セリフ2",
       "background": "背景説明2",
-      "rating": 4.5
+      "rating": 4.5,
+      "tags": ["問題提起"]
     }
   ]
 }
@@ -191,6 +218,7 @@ export default function WisdomFountain() {
         quote: item.quote,
         background: item.background,
         rating: item.rating,
+        tags: item.tags || [], // タグを追加
       }));
 
       setPhrases(newPhrases);
@@ -455,10 +483,24 @@ export default function WisdomFountain() {
                       >
                         <CardHeader className="py-3 px-4 bg-gradient-to-r from-navy-900 to-navy-800 flex justify-between items-center">
                           <div className="flex items-center justify-between w-full">
-                            <CardTitle className="text-base text-gold-400 flex items-center">
-                              <Trophy className="w-5 h-5 mr-2 text-gold-400" />
-                              セリフ {index + 1}
-                            </CardTitle>
+                            <div className="flex items-center">
+                              <CardTitle className="text-base text-gold-400 flex items-center">
+                                <Trophy className="w-5 h-5 mr-2 text-gold-400" />
+                                セリフ {index + 1}
+                              </CardTitle>
+                              <div className="flex ml-4">
+                                {phrase.tags.map((tag, tagIndex) => (
+                                  <span
+                                    key={tagIndex}
+                                    className={`text-xs font-bold ${getTagColor(
+                                      tag
+                                    )} px-2 py-0.5 rounded-full mr-1`}
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
                             <div className="flex items-center">
                               {renderStars(phrase.rating)}
                               <Button
@@ -472,7 +514,7 @@ export default function WisdomFountain() {
                             </div>
                           </div>
                         </CardHeader>
-                        <CardContent className="py-3 px-4">
+                        <CardContent className="py-2 px-4">
                           <p className="text-base font-semibold text-gold-300">
                             {phrase.quote}
                           </p>
