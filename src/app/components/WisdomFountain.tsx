@@ -522,14 +522,24 @@ export default function WisdomFountain() {
                 isLoading={isLoading}
               />
               {!showResults && (
-                <motion.p
-                  className="text-lg text-gray-600 mt-4 text-center"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                >
-                  例）「AI」「大谷翔平」「自動運転」「2030年の日本」
-                </motion.p>
+                <>
+                  <motion.p
+                    className="text-lg text-gray-600 mt-6 text-center"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                  >
+                    例）「AI」「大谷翔平」「自動運転」「2030年の日本」
+                  </motion.p>
+                  <motion.p
+                    className="text-base text-red-500 mt-3 text-center"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                  >
+                    ※作品名を入力するとネタバレを含む可能性があります。
+                  </motion.p>
+                </>
               )}
             </motion.div>
           </motion.div>
