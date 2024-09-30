@@ -26,7 +26,7 @@
 1. リポジトリをクローンします：
 
    ```
-   git clone [リポジトリURL]
+   git clone https://github.com/tahara-pg/intelli-maker.git
    ```
 
 2. 依存関係をインストールします：
