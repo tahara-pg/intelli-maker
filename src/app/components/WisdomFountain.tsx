@@ -39,7 +39,12 @@ interface Phrase {
   quote: string;
   background: string;
   rating: number;
-  tags: string[]; // 新しいタグフィールドを追加
+  tags: string[];
+}
+
+interface Trivia {
+  content: string;
+  rating: number; // 評価を追加
 }
 
 interface GlossaryItem {
@@ -91,6 +96,7 @@ const getTagColor = (tag: string) => {
 export default function WisdomFountain() {
   const [keyword, setKeyword] = useState("");
   const [phrases, setPhrases] = useState<Phrase[]>([]);
+  const [trivias, setTrivias] = useState<Trivia[]>([]);
   const [glossary, setGlossary] = useState<GlossaryItem[]>([]);
   const [keyPersons, setKeyPersons] = useState<KeyPerson[]>([]);
   const [showResults, setShowResults] = useState(false);
@@ -214,7 +220,7 @@ export default function WisdomFountain() {
 
       const newPhrases = phrasesJson.phrases.map((item: PhraseItem) => ({
         quote: item.quote,
-        background: item.background.replace(/<\/?keyword>/g, ""), // <keyword>タグを削除
+        background: item.background.replace(/<\/?keyword>/g, ""),
         rating: item.rating,
         tags: item.tags || [],
       }));
@@ -224,6 +230,60 @@ export default function WisdomFountain() {
       console.error("フレーズの処理中にエラーが発生しました:", error);
       setPhrasesError(
         `フレーズの生成中にエラーが発生しました: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    } finally {
+      setPhrasesLoading(false);
+    }
+  };
+
+  const generateTrivias = async () => {
+    setPhrasesLoading(true);
+    setPhrasesError(null);
+    try {
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+      const triviasPrompt = `
+キーワード「${keyword}」に関連する面白い雑学を5つ生成してください。各雑学は100文字程度で、興味深く、記憶に残るものにしてください。
+雑学の文章の中で面白いポイントや強調すべきポイントには<keyword>タグを付けてください。
+また、各雑学に1から5までの評価（面白さや重要度）を付けてください。
+
+以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
+
+{
+  "trivias": [
+    {
+      "content": "雑学1の内容（<keyword>タグ付き）",
+      "rating": 4
+    },
+    {
+      "content": "雑学2の内容（<keyword>タグ付き）",
+      "rating": 5
+    }
+  ]
+}
+`;
+      const triviasResult = await model.generateContent(triviasPrompt);
+      const triviasText = triviasResult.response.text();
+      const triviasJson = cleanAndParseJSON(triviasText);
+
+      if (!triviasJson.trivias || !Array.isArray(triviasJson.trivias)) {
+        throw new Error("Invalid trivias structure in response");
+      }
+
+      const newTrivias = triviasJson.trivias.map(
+        (item: { content: string; rating: number }) => ({
+          content: item.content,
+          rating: item.rating,
+        })
+      );
+
+      setTrivias(newTrivias);
+    } catch (error) {
+      console.error("雑学の処理中にエラーが発生しました:", error);
+      setPhrasesError(
+        `雑学の生成中にエラーが発生しました: ${
           error instanceof Error ? error.message : String(error)
         }`
       );
@@ -381,6 +441,7 @@ export default function WisdomFountain() {
 
     await Promise.all([
       generatePhrases(),
+      generateTrivias(),
       generateGlossary(),
       generateKeyPersons(),
     ]);
@@ -444,7 +505,7 @@ export default function WisdomFountain() {
                 <AnimatePresence mode="wait">
                   <motion.p
                     key={currentQuote}
-                    className="text-2xl text-purple-600 italic mb-16 text-center"
+                    className="text-2xl text-purple-600 italic mb-8 text-center"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
@@ -460,11 +521,20 @@ export default function WisdomFountain() {
                 generateContent={generateContent}
                 isLoading={isLoading}
               />
+              {!showResults && (
+                <motion.p
+                  className="text-lg text-gray-600 mt-4 text-center"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
+                  例）「AI」「大谷翔平」「自動運転」「2030年の日本」
+                </motion.p>
+              )}
             </motion.div>
           </motion.div>
         </AnimatePresence>
 
-        {/* 結果表示部分 */}
         {(showResults ||
           phrasesLoading ||
           glossaryLoading ||
@@ -475,6 +545,7 @@ export default function WisdomFountain() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4"
           >
+            {/* セリフセクション */}
             <div className="bg-white rounded-lg shadow-md border border-purple-100">
               <div className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
                 <h2 className="text-xl font-semibold text-gray-800 tracking-wider flex items-center">
@@ -544,133 +615,183 @@ export default function WisdomFountain() {
               </div>
             </div>
 
-            <div className="space-y-4">
-              <Card className="bg-white rounded-lg shadow-md border border-purple-200">
-                <CardHeader className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
-                  <CardTitle className="text-xl text-gray-800 tracking-wider flex items-center">
-                    <BookOpen className="w-5 h-5 mr-2" />
-                    関連用語
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="py-3 px-4">
-                  {glossaryLoading ? (
-                    <GlossarySkeletonLoader />
-                  ) : glossaryError ? (
-                    <ErrorCard error={glossaryError} retry={generateGlossary} />
-                  ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="text-purple-800 w-1/3">
-                            用語
-                          </TableHead>
-                          <TableHead className="text-purple-800">
-                            定義
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {glossary.map((item, index) => (
-                          <TableRow key={index}>
-                            <TableCell className="font-bold text-purple-800 text-lg">
-                              {item.term}
-                            </TableCell>
-                            <TableCell className="text-gray-700">
-                              {item.definition}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  )}
-                </CardContent>
-              </Card>
+            {/* 雑学セクション */}
+            <div className="bg-white rounded-lg shadow-md border border-purple-100">
+              <div className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
+                <h2 className="text-xl font-semibold text-gray-800 tracking-wider flex items-center">
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  面白い雑学
+                </h2>
+              </div>
+              <div className="py-6 px-4">
+                {phrasesLoading ? (
+                  <TriviaSkeletonLoader />
+                ) : phrasesError ? (
+                  <ErrorCard error={phrasesError} retry={generateTrivias} />
+                ) : (
+                  <div className="space-y-6">
+                    {trivias.map((trivia, index) => (
+                      <div
+                        key={index}
+                        className="bg-white rounded-lg shadow-sm border border-purple-100"
+                      >
+                        <div className="py-3 px-4 bg-gradient-to-r from-purple-50 to-blue-50 flex justify-between items-center">
+                          <div className="flex items-center">
+                            <h3 className="text-base text-purple-800 tracking-wide flex items-center">
+                              <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
+                              雑学 {index + 1}
+                            </h3>
+                          </div>
+                          <div className="flex items-center">
+                            {renderStars(trivia.rating)}
+                          </div>
+                        </div>
+                        <div className="pt-4 pb-6 px-4">
+                          <p className="text-lg font-semibold text-purple-800 leading-8">
+                            {trivia.content
+                              .split(/<keyword>|<\/keyword>/)
+                              .map((part, i) =>
+                                i % 2 === 0 ? (
+                                  part
+                                ) : (
+                                  <span key={i} className="text-2xl font-bold">
+                                    {part}
+                                  </span>
+                                )
+                              )}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
 
-              {keyPersonsLoading ? (
-                <KeyPersonsSkeletonLoader />
-              ) : keyPersonsError ? (
-                <ErrorCard error={keyPersonsError} retry={generateKeyPersons} />
-              ) : (
-                keyPersons.length > 0 && (
-                  <Card className="bg-white rounded-lg shadow-md border border-purple-200">
-                    <CardHeader className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
-                      <CardTitle className="text-xl text-gray-800 tracking-wider flex items-center">
-                        <User className="w-5 h-5 mr-2" />
-                        キーパーソン
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="py-3 px-4">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="text-purple-800 w-16">
-                              写真
-                            </TableHead>
-                            <TableHead className="text-purple-800 w-1/4">
-                              名前
-                            </TableHead>
-                            <TableHead className="text-purple-800">
-                              説明
-                            </TableHead>
-                            <TableHead className="text-purple-800 w-24">
-                              リンク
-                            </TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {keyPersons.map((person, index) => (
-                            <TableRow key={index}>
-                              <TableCell>
-                                <Image
-                                  src={person.image}
-                                  alt={`${person.name}の画像`}
-                                  width={40}
-                                  height={40}
-                                  className="rounded-full border-2 border-purple-100"
-                                />
-                              </TableCell>
-                              <TableCell className="font-bold text-purple-800 text-lg">
-                                {person.name}
-                              </TableCell>
-                              <TableCell className="text-gray-700">
-                                {person.description}
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex space-x-2">
-                                  <a
-                                    href={person.twitter}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-gray-600 hover:text-gray-800"
-                                  >
-                                    <Twitter className="w-4 h-4" />
-                                  </a>
-                                  <a
-                                    href={person.linkedin}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-gray-600 hover:text-gray-800"
-                                  >
-                                    <Linkedin className="w-4 h-4" />
-                                  </a>
-                                  <a
-                                    href={person.website}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-gray-600 hover:text-gray-800"
-                                  >
-                                    <Globe className="w-4 h-4" />
-                                  </a>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </CardContent>
-                  </Card>
-                )
-              )}
+            {/* 用語集セクション */}
+            <div className="bg-white rounded-lg shadow-md border border-purple-100">
+              <div className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
+                <h2 className="text-xl font-semibold text-gray-800 tracking-wider flex items-center">
+                  <BookOpen className="w-5 h-5 mr-2" />
+                  関連用語
+                </h2>
+              </div>
+              <div className="py-6 px-4">
+                {glossaryLoading ? (
+                  <GlossarySkeletonLoader />
+                ) : glossaryError ? (
+                  <ErrorCard error={glossaryError} retry={generateGlossary} />
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-purple-800 w-1/3">
+                          用語
+                        </TableHead>
+                        <TableHead className="text-purple-800">定義</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {glossary.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-bold text-purple-800 text-lg">
+                            {item.term}
+                          </TableCell>
+                          <TableCell className="text-gray-700">
+                            {item.definition}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </div>
+            </div>
+
+            {/* キーパーソンセクション */}
+            <div className="bg-white rounded-lg shadow-md border border-purple-100">
+              <div className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
+                <h2 className="text-xl font-semibold text-gray-800 tracking-wider flex items-center">
+                  <User className="w-5 h-5 mr-2" />
+                  キーパーソン
+                </h2>
+              </div>
+              <div className="py-6 px-4">
+                {keyPersonsLoading ? (
+                  <KeyPersonsSkeletonLoader />
+                ) : keyPersonsError ? (
+                  <ErrorCard
+                    error={keyPersonsError}
+                    retry={generateKeyPersons}
+                  />
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-purple-800 w-16">
+                          写真
+                        </TableHead>
+                        <TableHead className="text-purple-800 w-1/4">
+                          名前
+                        </TableHead>
+                        <TableHead className="text-purple-800">説明</TableHead>
+                        <TableHead className="text-purple-800 w-24">
+                          リンク
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {keyPersons.map((person, index) => (
+                        <TableRow key={index}>
+                          <TableCell>
+                            <Image
+                              src={person.image}
+                              alt={`${person.name}の画像`}
+                              width={40}
+                              height={40}
+                              className="rounded-full border-2 border-purple-100"
+                            />
+                          </TableCell>
+                          <TableCell className="font-bold text-purple-800 text-lg">
+                            {person.name}
+                          </TableCell>
+                          <TableCell className="text-gray-700">
+                            {person.description}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <a
+                                href={person.twitter}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-gray-600 hover:text-gray-800"
+                              >
+                                <Twitter className="w-4 h-4" />
+                              </a>
+                              <a
+                                href={person.linkedin}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-gray-600 hover:text-gray-800"
+                              >
+                                <Linkedin className="w-4 h-4" />
+                              </a>
+                              <a
+                                href={person.website}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-gray-600 hover:text-gray-800"
+                              >
+                                <Globe className="w-4 h-4" />
+                              </a>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </div>
             </div>
           </motion.div>
         )}
@@ -700,7 +821,7 @@ function SearchInput({
     <div className="relative w-full">
       <Input
         type="text"
-        placeholder="キーワードを入力"
+        placeholder="気になるキーワードを入力してください"
         value={keyword}
         onChange={(e) => setKeyword(e.target.value)}
         onKeyDown={(e) => {
@@ -823,5 +944,28 @@ function ErrorCard({ error, retry }: { error: string; retry: () => void }) {
         </Button>
       </CardContent>
     </Card>
+  );
+}
+
+// 新しい TriviaSkeletonLoader コンポーネントを追加
+function TriviaSkeletonLoader() {
+  return (
+    <>
+      {[1, 2, 3].map((_, index) => (
+        <div
+          key={index}
+          className="bg-white rounded-lg shadow-sm border border-purple-100 mb-6"
+        >
+          <div className="py-3 px-4 bg-gradient-to-r from-purple-50 to-blue-50 flex justify-between items-center">
+            <Skeleton className="h-6 w-1/3" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+          <div className="pt-4 pb-6 px-4">
+            <Skeleton className="h-6 w-full mb-2" />
+            <Skeleton className="h-6 w-2/3" />
+          </div>
+        </div>
+      ))}
+    </>
   );
 }
