@@ -414,30 +414,29 @@ export default function WisdomFountain() {
               showResults ? "flex-row items-center" : "flex-col items-center"
             } justify-between mb-8`}
           >
-            <motion.h1
-              className={`font-bold text-gray-800 ${
-                showResults
-                  ? "text-2xl"
-                  : "text-5xl md:text-6xl text-center mt-24 mb-16"
-              }`}
+            <motion.div
+              className={`${showResults ? "w-1/3" : "w-full max-w-2xl"}`}
               initial={false}
               animate={{
-                fontSize: showResults ? "1.5rem" : "3rem",
+                width: showResults ? "30%" : "100%",
                 marginBottom: showResults ? "0" : "2rem",
               }}
               transition={{ duration: 0.5 }}
             >
-              インテリメーカー{" "}
-              <span className={`${showResults ? "text-base" : "text-lg"}`}>
-                〜賢いは作れる〜
-              </span>
-            </motion.h1>
+              <Image
+                src="/logo.png"
+                alt="インテリメーカー"
+                width={500}
+                height={100}
+                className="mx-auto"
+              />
+            </motion.div>
 
             <motion.div
               className={`${showResults ? "w-2/3" : "w-full max-w-2xl"}`}
               initial={false}
               animate={{
-                width: showResults ? "66.666667%" : "100%",
+                width: showResults ? "50%" : "100%",
               }}
               transition={{ duration: 0.5 }}
             >
