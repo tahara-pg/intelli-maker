@@ -109,6 +109,7 @@ export default function WisdomFountain() {
   const [phrasesError, setPhrasesError] = useState<string | null>(null);
   const [glossaryError, setGlossaryError] = useState<string | null>(null);
   const [keyPersonsError, setKeyPersonsError] = useState<string | null>(null);
+  const [isThinking, setIsThinking] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -438,15 +439,19 @@ export default function WisdomFountain() {
     setShowResults(true);
     setError(null);
     setIsLoading(true);
+    setIsThinking(true); // AIが考え始めたことを示す
 
-    await Promise.all([
-      generatePhrases(),
-      generateTrivias(),
-      generateGlossary(),
-      generateKeyPersons(),
-    ]);
-
-    setIsLoading(false);
+    try {
+      await Promise.all([
+        generatePhrases(),
+        generateTrivias(),
+        generateGlossary(),
+        generateKeyPersons(),
+      ]);
+    } finally {
+      setIsLoading(false);
+      setIsThinking(false); // AIの思考が終了したことを示す
+    }
   };
 
   const renderStars = (rating: number) => {
@@ -814,6 +819,40 @@ export default function WisdomFountain() {
             <strong className="font-bold">エラー: </strong>
             <span className="block sm:inline">{error}</span>
           </div>
+        )}
+
+        {isThinking && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          >
+            <div className="bg-white rounded-lg p-8 max-w-md w-full">
+              <h3 className="text-2xl font-bold text-purple-800 mb-4">
+                AIが考えています...
+              </h3>
+              <div className="flex justify-center space-x-2">
+                {[0, 1, 2].map((i) => (
+                  <motion.div
+                    key={i}
+                    className="w-4 h-4 bg-purple-600 rounded-full"
+                    animate={{
+                      y: [0, -20, 0],
+                    }}
+                    transition={{
+                      duration: 0.8,
+                      repeat: Infinity,
+                      delay: i * 0.2,
+                    }}
+                  />
+                ))}
+              </div>
+              <p className="text-gray-600 mt-4 text-center">
+                膨大なデータを分析し、最適な回答を生成しています。
+              </p>
+            </div>
+          </motion.div>
         )}
       </div>
     </div>
