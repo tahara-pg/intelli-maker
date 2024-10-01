@@ -1037,7 +1037,13 @@ function TriviaSkeletonLoader() {
   );
 }
 
-function Footer({ setIsHowToUseOpen, setIsAboutOpen }) {
+function Footer({
+  setIsHowToUseOpen,
+  setIsAboutOpen,
+}: {
+  setIsHowToUseOpen: (isOpen: boolean) => void;
+  setIsAboutOpen: (isOpen: boolean) => void;
+}) {
   return (
     <footer className=" text-slate-800 py-6 mt-12">
       <div className="container mx-auto px-4 flex flex-col items-center">
@@ -1095,7 +1101,13 @@ function HowToUseModal({ isOpen, setIsOpen }) {
   );
 }
 
-function AboutModal({ isOpen, setIsOpen }) {
+function AboutModal({
+  isOpen,
+  setIsOpen,
+}: {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+}) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-[425px]">
