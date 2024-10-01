@@ -29,6 +29,13 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
 import logoImage from "@/app/images/logo.png";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 // Gemini APIの設定
 const genAI = new GoogleGenerativeAI(
@@ -113,6 +120,8 @@ export default function WisdomFountain() {
   const [glossaryError, setGlossaryError] = useState<string | null>(null);
   const [keyPersonsError, setKeyPersonsError] = useState<string | null>(null);
   const [isThinking, setIsThinking] = useState(false);
+  const [isHowToUseOpen, setIsHowToUseOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -856,6 +865,14 @@ export default function WisdomFountain() {
           </motion.div>
         )}
       </div>
+
+      <Footer
+        setIsHowToUseOpen={setIsHowToUseOpen}
+        setIsAboutOpen={setIsAboutOpen}
+      />
+
+      <HowToUseModal isOpen={isHowToUseOpen} setIsOpen={setIsHowToUseOpen} />
+      <AboutModal isOpen={isAboutOpen} setIsOpen={setIsAboutOpen} />
     </div>
   );
 }
@@ -1017,5 +1034,89 @@ function TriviaSkeletonLoader() {
         </div>
       ))}
     </>
+  );
+}
+
+function Footer({ setIsHowToUseOpen, setIsAboutOpen }) {
+  return (
+    <footer className=" text-slate-800 py-6 mt-12">
+      <div className="container mx-auto px-4 flex flex-col items-center">
+        <div className="flex space-x-8 mb-4">
+          <button
+            onClick={() => setIsHowToUseOpen(true)}
+            className="text-sm hover:underline transition-colors duration-200"
+          >
+            使い方
+          </button>
+          <button
+            onClick={() => setIsAboutOpen(true)}
+            className="text-sm hover:underline transition-colors duration-200"
+          >
+            このサイトについて
+          </button>
+        </div>
+        <div>
+          <p className="text-sm">
+            &copy; 2024 インテリメーカー All Rights Reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+function HowToUseModal({ isOpen, setIsOpen }) {
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>インテリメーカーの使い方</DialogTitle>
+        </DialogHeader>
+        <div className="mt-4 space-y-4">
+          <p>
+            1. キーワードを入力:
+            興味のあるトピックや知りたい分野のキーワードを入力します。
+          </p>
+          <p>
+            2. 生成ボタンをクリック:
+            AIが入力されたキーワードに基づいて、関連する情報を生成します。
+          </p>
+          <p>
+            3. 結果を確認:
+            生成された「賢く聞こえるセリフ」、「面白い雑学」、「関連用語」、「キーパーソン」の情報を確認します。
+          </p>
+          <p>
+            4. 情報を活用:
+            生成された情報を会話や学習に活用し、知識の幅を広げましょう。
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AboutModal({ isOpen, setIsOpen }) {
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>インテリメーカーについて</DialogTitle>
+        </DialogHeader>
+        <div className="mt-4 space-y-4">
+          <p>
+            インテリメーカーは、AIの力を活用して、ユーザーの知識の幅を広げ、会話力を向上させることを目的としたツールです。
+          </p>
+          <p>
+            私たちの目標は、ユーザーが様々なトピックについて深い洞察を得られるようサポートし、知的好奇心を刺激することです。
+          </p>
+          <p>
+            このツールを通じて、ユーザーがより豊かな会話や議論を楽しみ、新しい視点を得られることを願っています。
+          </p>
+          <p>
+            常に改善を重ね、ユーザーの皆様により良い体験を提供できるよう努めてまいります。
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
