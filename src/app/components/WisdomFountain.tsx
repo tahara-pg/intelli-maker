@@ -482,7 +482,7 @@ export default function WisdomFountain() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-6 relative overflow-y-auto">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-6 relative overflow-y-auto flex flex-col justify-center">
       <div className="container mx-auto px-4 relative z-10">
         <AnimatePresence mode="wait">
           <motion.div
@@ -495,7 +495,7 @@ export default function WisdomFountain() {
             } justify-between mb-8`}
           >
             <motion.div
-              className={`${showResults ? "w-1/3" : "w-full max-w-2xl"}`}
+              className={`${showResults ? "w-1/3" : "w-full max-w-2xl"} mb-8`}
               initial={false}
               animate={{
                 width: showResults ? "30%" : "100%",
@@ -520,20 +520,6 @@ export default function WisdomFountain() {
               }}
               transition={{ duration: 0.5 }}
             >
-              {!showResults && (
-                <AnimatePresence mode="wait">
-                  <motion.p
-                    key={currentQuote}
-                    className="text-2xl text-purple-600 italic mb-8 text-center"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    &ldquo;{currentQuote}&rdquo;
-                  </motion.p>
-                </AnimatePresence>
-              )}
               <SearchInput
                 keyword={keyword}
                 setKeyword={setKeyword}
@@ -884,7 +870,7 @@ function SearchInput({
     <div className="relative w-full">
       <Input
         type="text"
-        placeholder="気になるキーワードを入力してください"
+        placeholder="キーワードを入力"
         value={keyword}
         onChange={(e) => setKeyword(e.target.value)}
         onKeyDown={(e) => {
