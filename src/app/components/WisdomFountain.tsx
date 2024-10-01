@@ -28,6 +28,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
+import logoImage from "@/app/images/logo.png";
 
 // Gemini APIの設定
 const genAI = new GoogleGenerativeAI(
@@ -504,7 +505,7 @@ export default function WisdomFountain() {
               transition={{ duration: 0.5 }}
             >
               <Image
-                src="/logo.png"
+                src={logoImage}
                 alt="インテリメーカー"
                 width={500}
                 height={100}
