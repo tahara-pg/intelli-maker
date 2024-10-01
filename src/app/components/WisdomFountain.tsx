@@ -104,9 +104,11 @@ export default function WisdomFountain() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [phrasesLoading, setPhrasesLoading] = useState(false);
+  const [triviasLoading, setTriviasLoading] = useState(false);
   const [glossaryLoading, setGlossaryLoading] = useState(false);
   const [keyPersonsLoading, setKeyPersonsLoading] = useState(false);
   const [phrasesError, setPhrasesError] = useState<string | null>(null);
+  const [triviasError, setTriviasError] = useState<string | null>(null);
   const [glossaryError, setGlossaryError] = useState<string | null>(null);
   const [keyPersonsError, setKeyPersonsError] = useState<string | null>(null);
   const [isThinking, setIsThinking] = useState(false);
@@ -240,8 +242,8 @@ export default function WisdomFountain() {
   };
 
   const generateTrivias = async () => {
-    setPhrasesLoading(true);
-    setPhrasesError(null);
+    setTriviasLoading(true);
+    setTriviasError(null);
     try {
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -283,13 +285,13 @@ export default function WisdomFountain() {
       setTrivias(newTrivias);
     } catch (error) {
       console.error("雑学の処理中にエラーが発生しました:", error);
-      setPhrasesError(
+      setTriviasError(
         `雑学の生成中にエラーが発生しました: ${
           error instanceof Error ? error.message : String(error)
         }`
       );
     } finally {
-      setPhrasesLoading(false);
+      setTriviasLoading(false);
     }
   };
 
@@ -439,7 +441,19 @@ export default function WisdomFountain() {
     setShowResults(true);
     setError(null);
     setIsLoading(true);
-    setIsThinking(true); // AIが考え始めたことを示す
+    setIsThinking(true);
+
+    // 結果をクリア
+    setPhrases([]);
+    setTrivias([]);
+    setGlossary([]);
+    setKeyPersons([]);
+
+    // ローディング状態をセット
+    setPhrasesLoading(true);
+    setTriviasLoading(true);
+    setGlossaryLoading(true);
+    setKeyPersonsLoading(true);
 
     try {
       await Promise.all([
@@ -450,7 +464,7 @@ export default function WisdomFountain() {
       ]);
     } finally {
       setIsLoading(false);
-      setIsThinking(false); // AIの思考が終了したことを示す
+      setIsThinking(false);
     }
   };
 
@@ -639,10 +653,10 @@ export default function WisdomFountain() {
                 </h2>
               </div>
               <div className="py-6 px-4">
-                {phrasesLoading ? (
+                {triviasLoading ? (
                   <TriviaSkeletonLoader />
-                ) : phrasesError ? (
-                  <ErrorCard error={phrasesError} retry={generateTrivias} />
+                ) : triviasError ? (
+                  <ErrorCard error={triviasError} retry={generateTrivias} />
                 ) : (
                   <div className="space-y-6">
                     {trivias.map((trivia, index) => (
