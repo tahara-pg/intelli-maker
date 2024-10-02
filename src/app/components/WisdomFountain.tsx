@@ -68,14 +68,6 @@ interface KeyPerson {
   website: string;
 }
 
-const initialQuotes = [
-  "知識は宝物、集めるほど豊かになる",
-  "頭がよくなると、夢が叶いやすくなる",
-  "賢くなれば、仲間が増える",
-  "賢い人は、困った人を助けられる",
-  "学べば学ぶほど、楽しいことが増える",
-];
-
 // SearchInput コンポーネントの型定義を追加
 interface SearchInputProps {
   keyword: string;
@@ -107,7 +99,6 @@ export default function WisdomFountain() {
   const [glossary, setGlossary] = useState<GlossaryItem[]>([]);
   const [keyPersons, setKeyPersons] = useState<KeyPerson[]>([]);
   const [showResults, setShowResults] = useState(false);
-  const [setCurrentQuote] = useState(initialQuotes[0]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [phrasesLoading, setPhrasesLoading] = useState(false);
@@ -121,15 +112,6 @@ export default function WisdomFountain() {
   const [isThinking, setIsThinking] = useState(false);
   const [isHowToUseOpen, setIsHowToUseOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentQuote(
-        initialQuotes[Math.floor(Math.random() * initialQuotes.length)]
-      );
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     console.log("Updated Phrases:", phrases);
@@ -1074,7 +1056,13 @@ function Footer({
   );
 }
 
-function HowToUseModal({ isOpen, setIsOpen }) {
+function HowToUseModal({
+  isOpen,
+  setIsOpen,
+}: {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+}) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-[425px]">
