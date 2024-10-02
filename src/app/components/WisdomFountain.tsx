@@ -182,7 +182,7 @@ export default function WisdomFountain() {
     setPhrasesLoading(true);
     setPhrasesError(null);
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-002" });
 
       // フレーズの生成プロンプトを更新
       const phrasesPrompt = `
@@ -199,7 +199,7 @@ export default function WisdomFountain() {
 
 これらのタグに関連する情報を含むセリフを優先的に生成してください。
 
-以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
+以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。バッククォートで囲うのも不要です。
 
 {
   "phrases": [
@@ -255,14 +255,14 @@ export default function WisdomFountain() {
     setTriviasLoading(true);
     setTriviasError(null);
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-002" });
 
       const triviasPrompt = `
 キーワード「${keyword}」に関連する面白い雑学を5つ生成してください。各雑学は100文字程度で、興味深く、記憶に残るものにしてください。
 雑学の文章の中で面白いポイントや強調すべきポイントには<keyword>タグを付けてください。
 また、各雑学に1から5までの評価（面白さや重要度）を付けてください。
 
-以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
+以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。バッククォートで囲うのも不要です。
 
 {
   "trivias": [
@@ -309,7 +309,7 @@ export default function WisdomFountain() {
     setGlossaryLoading(true);
     setGlossaryError(null);
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-002" });
 
       // 用語集の生成プロンプトを更新
       const glossaryPrompt = `
@@ -319,7 +319,7 @@ export default function WisdomFountain() {
 2. 一般的な概念、技術用語、プロセス、理論などに焦点を当ててください。
 3. 各用語は、キーワードに直接関連し、その分野の理解を深めるものを選んでください。
 
-以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
+以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。バッククォートで囲うのも不要です。
 
 {
   "glossary": [
@@ -381,7 +381,7 @@ export default function WisdomFountain() {
     setKeyPersonsLoading(true);
     setKeyPersonsError(null);
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-002" });
 
       // キーパーソンの生成
       const keyPersonPrompt = `
@@ -391,7 +391,7 @@ export default function WisdomFountain() {
 3. TwitterとLinkedInのURL
 4. 公式ウェブサイトのURL
 
-以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
+以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。バッククォートで囲うのも不要です。
 
 {
   "keyPersons": [
