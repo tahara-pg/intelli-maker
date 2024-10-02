@@ -448,35 +448,40 @@ export default function WisdomFountain() {
 
       // キーパーソンの生成
       const keyPersonPrompt = `
-キーワード「${keyword}」に関連する重要な人物を5人選び、以下の情報を生成してください：
-1. その人物の名前
-2. 素人にもわかる詳しい100文字以上の説明（その人物の経歴や業績に加え、キーワード「${keyword}」との関連性も含めてください）
-3. TwitterとLinkedInのURL
-4. 公式ウェブサイトのURL
+        キーワード「${keyword}」に関連する重要な人物を5人選び、以下の情報を生成してください：
+        1. その人物の名前
+        2. 素人にもわかる詳しい100文字以上の説明（その人物の経歴や業績に加え、キーワード「${keyword}」との関連性も含めてください）
+        3. TwitterとLinkedInのURL
+        4. 公式ウェブサイトのURL
 
-以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
+        以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
 
-{
-  "keyPersons": [
-    {
-      "name": "人物名1",
-      "description": "人物の説明1（キーワードとの関連性を含む）",
-      "twitter": "https://twitter.com/example1",
-      "linkedin": "https://www.linkedin.com/in/example1",
-      "website": "https://example1.com"
-    },
-    {
-      "name": "人物名2",
-      "description": "人物の説明2（キーワードとの関連性を含む）",
-      "twitter": "https://twitter.com/example2",
-      "linkedin": "https://www.linkedin.com/in/example2",
-      "website": "https://example2.com"
-    }
-  ]
-}
-`;
+        {
+          "keyPersons": [
+            {
+              "name": "人物名1",
+              "description": "人物の説明1（キーワードとの関連性を含む）",
+              "twitter": "https://twitter.com/example1",
+              "linkedin": "https://www.linkedin.com/in/example1",
+              "website": "https://example1.com"
+            },
+            {
+              "name": "人物名2",
+              "description": "人物の説明2（キーワードとの関連性を含む）",
+              "twitter": "https://twitter.com/example2",
+              "linkedin": "https://www.linkedin.com/in/example2",
+              "website": "https://example2.com"
+            }
+          ]
+        }
+      `;
+
+      const keyPersonResult = await model.generateContent(keyPersonPrompt);
+      const keyPersonText = keyPersonResult.response.text();
+
       const keyPersonJson = cleanAndParseJSON("keyPersons", keyPersonText);
       console.log("Parsed key person JSON:", keyPersonJson);
+
       const newKeyPersons = Array.isArray(keyPersonJson.keyPersons)
         ? keyPersonJson.keyPersons.map((person: KeyPersonItem) => ({
             ...person,
@@ -907,89 +912,78 @@ export default function WisdomFountain() {
                     retry={generateKeyPersons}
                   />
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-purple-800 w-16">
-                          写真
-                        </TableHead>
-                        <TableHead className="text-purple-800 w-1/4">
-                          名前
-                        </TableHead>
-                        <TableHead className="text-purple-800">説明</TableHead>
-                        <TableHead className="text-purple-800 w-24">
-                          リンク
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {keyPersons.map((person, index) => (
-                        <TableRow key={index}>
-                          <TableCell>
+                  <div className="space-y-6">
+                    {keyPersons.map((person, index) => (
+                      <Card
+                        key={index}
+                        className="bg-white rounded-lg shadow-sm border border-purple-100"
+                      >
+                        <CardContent className="p-6">
+                          <div className="flex items-center space-x-6">
                             <Image
                               src={person.image}
                               alt={`${person.name}の画像`}
-                              width={40}
-                              height={40}
+                              width={96}
+                              height={96}
                               className="rounded-full border-2 border-purple-100"
                             />
-                          </TableCell>
-                          <TableCell className="font-bold text-purple-800 text-lg">
-                            {person.name}
-                          </TableCell>
-                          <TableCell className="text-gray-700">
-                            {person.description}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex space-x-2">
-                              <a
-                                href={person.twitter}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-gray-600 hover:text-gray-800"
-                                onClick={() =>
-                                  handleExternalLinkClick(
-                                    "twitter",
-                                    person.twitter
-                                  )
-                                }
-                              >
-                                <Twitter className="w-4 h-4" />
-                              </a>
-                              <a
-                                href={person.linkedin}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-gray-600 hover:text-gray-800"
-                                onClick={() =>
-                                  handleExternalLinkClick(
-                                    "linkedin",
-                                    person.linkedin
-                                  )
-                                }
-                              >
-                                <Linkedin className="w-4 h-4" />
-                              </a>
-                              <a
-                                href={person.website}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-gray-600 hover:text-gray-800"
-                                onClick={() =>
-                                  handleExternalLinkClick(
-                                    "website",
-                                    person.website
-                                  )
-                                }
-                              >
-                                <Globe className="w-4 h-4" />
-                              </a>
+                            <div>
+                              <h3 className="text-xl font-bold text-purple-800 mb-2">
+                                {person.name}
+                              </h3>
+                              <p className="text-gray-700 mb-4">
+                                {person.description}
+                              </p>
+                              <div className="flex space-x-4">
+                                <a
+                                  href={person.twitter}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-gray-600 hover:text-gray-800"
+                                  onClick={() =>
+                                    handleExternalLinkClick(
+                                      "twitter",
+                                      person.twitter
+                                    )
+                                  }
+                                >
+                                  <Twitter className="w-5 h-5" />
+                                </a>
+                                <a
+                                  href={person.linkedin}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-gray-600 hover:text-gray-800"
+                                  onClick={() =>
+                                    handleExternalLinkClick(
+                                      "linkedin",
+                                      person.linkedin
+                                    )
+                                  }
+                                >
+                                  <Linkedin className="w-5 h-5" />
+                                </a>
+                                <a
+                                  href={person.website}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-gray-600 hover:text-gray-800"
+                                  onClick={() =>
+                                    handleExternalLinkClick(
+                                      "website",
+                                      person.website
+                                    )
+                                  }
+                                >
+                                  <Globe className="w-5 h-5" />
+                                </a>
+                              </div>
                             </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
@@ -1146,30 +1140,29 @@ function GlossarySkeletonLoader() {
 
 function KeyPersonsSkeletonLoader() {
   return (
-    <Card className="bg-white rounded-lg shadow-md border border-purple-200">
-      <CardHeader className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
-        <CardTitle className="text-xl text-gray-800 tracking-wider flex items-center">
-          <User className="w-5 h-5 mr-2" />
-          キーパーソン
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-6">
-        {[1, 2].map((_, index) => (
-          <div key={index} className="flex items-center space-x-6 mb-6">
-            <Skeleton className="w-24 h-24 rounded-full" />
-            <div>
-              <Skeleton className="h-6 w-32 mb-2" />
-              <Skeleton className="h-4 w-64 mb-4" />
-              <div className="flex space-x-4">
-                <Skeleton className="w-6 h-6" />
-                <Skeleton className="w-6 h-6" />
-                <Skeleton className="w-6 h-6" />
+    <div className="space-y-6">
+      {[1, 2, 3].map((_, index) => (
+        <Card
+          key={index}
+          className="bg-white rounded-lg shadow-sm border border-purple-100"
+        >
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-6">
+              <Skeleton className="w-24 h-24 rounded-full" />
+              <div>
+                <Skeleton className="h-6 w-32 mb-2" />
+                <Skeleton className="h-4 w-64 mb-4" />
+                <div className="flex space-x-4">
+                  <Skeleton className="w-5 h-5" />
+                  <Skeleton className="w-5 h-5" />
+                  <Skeleton className="w-5 h-5" />
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 }
 
@@ -1247,7 +1240,6 @@ function Footer({
     </footer>
   );
 }
-
 function HowToUseModal({
   isOpen,
   setIsOpen,
