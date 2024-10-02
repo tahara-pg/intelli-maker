@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -93,19 +93,24 @@ const getTagColor = (tag: string) => {
 };
 
 // Google Analyticsイベント送信用の関数
-const sendGAEvent = (eventName: string, params?: { [key: string]: any }) => {
+const sendGAEvent = (eventName: string, params?: Record<string, unknown>) => {
   if (typeof window !== "undefined" && (window as any).gtag) {
     (window as any).gtag("event", eventName, params);
   }
 };
 
-const handleParseError = (section: string, text: string, error: Error) => {
+const handleParseError = (
+  section: string,
+  text: string,
+  error: Error,
+  keyword: string
+) => {
   console.error(`JSON解析エラー (${section}):`, error);
   console.error("問題のあるJSON文字列:", text);
 
   sendGAEvent("content_parse_error", {
-    keyword,
-    section,
+    keyword: keyword,
+    section: section,
     error: error.message,
     raw_text: text.substring(0, 500), // 長すぎる場合に備えて最初の500文字のみ送信
   });
@@ -113,7 +118,7 @@ const handleParseError = (section: string, text: string, error: Error) => {
   throw new Error(`${section}のJSONの解析に失敗しました: ${error.message}`);
 };
 
-const cleanAndParseJSON = (section: string, text: string) => {
+const cleanAndParseJSON = (section: string, text: string, keyword: string) => {
   try {
     // 文字列内の不正な文字を除去し、JSONとして解析可能な形式に変換
     const cleanedText = text
@@ -130,9 +135,14 @@ const cleanAndParseJSON = (section: string, text: string) => {
     return JSON.parse(cleanedText);
   } catch (e) {
     if (e instanceof Error) {
-      handleParseError(section, text, e);
+      handleParseError(section, text, e, keyword);
     } else {
-      handleParseError(section, text, new Error("Unknown parsing error"));
+      handleParseError(
+        section,
+        text,
+        new Error("Unknown parsing error"),
+        keyword
+      );
     }
   }
 };
@@ -225,7 +235,7 @@ export default function WisdomFountain() {
       console.log("Raw API response for phrases:", phrasesText);
 
       try {
-        const phrasesJson = cleanAndParseJSON("phrases", phrasesText);
+        const phrasesJson = cleanAndParseJSON("セリフ", phrasesText, keyword);
         console.log("Parsed phrases JSON:", phrasesJson);
 
         if (!phrasesJson.phrases || !Array.isArray(phrasesJson.phrases)) {
@@ -304,7 +314,7 @@ export default function WisdomFountain() {
       const triviasText = triviasResult.response.text();
 
       try {
-        const triviasJson = cleanAndParseJSON("trivias", triviasText);
+        const triviasJson = cleanAndParseJSON("雑学", triviasText, keyword);
 
         if (!triviasJson.trivias || !Array.isArray(triviasJson.trivias)) {
           throw new Error("Invalid trivias structure in response");
@@ -388,7 +398,7 @@ export default function WisdomFountain() {
 
       // 用語集の処理
       try {
-        const glossaryJson = cleanAndParseJSON("glossary", glossaryText);
+        const glossaryJson = cleanAndParseJSON("用語集", glossaryText, keyword);
         console.log("Parsed glossary JSON:", glossaryJson);
         setGlossary(
           Array.isArray(glossaryJson.glossary) ? glossaryJson.glossary : []
@@ -479,7 +489,11 @@ export default function WisdomFountain() {
       const keyPersonResult = await model.generateContent(keyPersonPrompt);
       const keyPersonText = keyPersonResult.response.text();
 
-      const keyPersonJson = cleanAndParseJSON("keyPersons", keyPersonText);
+      const keyPersonJson = cleanAndParseJSON(
+        "キーパーソン",
+        keyPersonText,
+        keyword
+      );
       console.log("Parsed key person JSON:", keyPersonJson);
 
       const newKeyPersons = Array.isArray(keyPersonJson.keyPersons)
