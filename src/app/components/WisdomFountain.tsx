@@ -107,7 +107,7 @@ export default function WisdomFountain() {
   const [glossary, setGlossary] = useState<GlossaryItem[]>([]);
   const [keyPersons, setKeyPersons] = useState<KeyPerson[]>([]);
   const [showResults, setShowResults] = useState(false);
-  const [currentQuote, setCurrentQuote] = useState(initialQuotes[0]);
+  const [setCurrentQuote] = useState(initialQuotes[0]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [phrasesLoading, setPhrasesLoading] = useState(false);
