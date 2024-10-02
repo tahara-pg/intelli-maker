@@ -1065,7 +1065,7 @@ function HowToUseModal({
 }) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] bg-white">
         <DialogHeader>
           <DialogTitle>インテリメーカーの使い方</DialogTitle>
         </DialogHeader>
