@@ -159,6 +159,8 @@ export default function WisdomFountain() {
         .replace(/」/g, "\u300D")
         .replace(/『/g, "\u300E")
         .replace(/』/g, "\u300F")
+        .replace(/```json/, "")
+        .replace(/```/, "")
         .trim(); // 前後の空白を削除
 
       // JSONとして解析
@@ -199,7 +201,7 @@ export default function WisdomFountain() {
 
 これらのタグに関連する情報を含むセリフを優先的に生成してください。
 
-以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。バッククォートで囲うのも不要です。
+以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
 
 {
   "phrases": [
@@ -262,7 +264,7 @@ export default function WisdomFountain() {
 雑学の文章の中で面白いポイントや強調すべきポイントには<keyword>タグを付けてください。
 また、各雑学に1から5までの評価（面白さや重要度）を付けてください。
 
-以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。バッククォートで囲うのも不要です。
+以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
 
 {
   "trivias": [
@@ -319,7 +321,7 @@ export default function WisdomFountain() {
 2. 一般的な概念、技術用語、プロセス、理論などに焦点を当ててください。
 3. 各用語は、キーワードに直接関連し、その分野の理解を深めるものを選んでください。
 
-以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。バッククォートで囲うのも不要です。
+以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
 
 {
   "glossary": [
@@ -391,7 +393,7 @@ export default function WisdomFountain() {
 3. TwitterとLinkedInのURL
 4. 公式ウェブサイトのURL
 
-以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。バッククォートで囲うのも不要です。
+以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
 
 {
   "keyPersons": [
@@ -836,10 +838,10 @@ export default function WisdomFountain() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-slate-800 bg-opacity-30 flex items-center justify-center z-50"
           >
             <div className="bg-white rounded-lg p-8 max-w-md w-full">
-              <h3 className="text-2xl font-bold text-purple-800 mb-4">
+              <h3 className="text-2xl font-bold text-purple-800 mb-8">
                 AIが考えています...
               </h3>
               <div className="flex justify-center space-x-2">
@@ -858,8 +860,10 @@ export default function WisdomFountain() {
                   />
                 ))}
               </div>
-              <p className="text-gray-600 mt-4 text-center">
-                膨大なデータを分析し、最適な回答を生成しています。
+              <p className="text-slate-600 mt-6 text-center">
+                膨大なデータを分析し、
+                <br />
+                最適な回答を生成しています。
               </p>
             </div>
           </motion.div>
