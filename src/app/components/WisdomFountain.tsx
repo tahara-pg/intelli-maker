@@ -36,6 +36,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+// Window インターフェースを拡張する
+declare global {
+  interface Window {
+    gtag?: (
+      command: string,
+      eventName: string,
+      params?: Record<string, unknown>
+    ) => void;
+  }
+}
+
 // Gemini APIの設定
 const genAI = new GoogleGenerativeAI(
   process.env.NEXT_PUBLIC_GEMINI_API_KEY ?? ""
@@ -94,8 +105,8 @@ const getTagColor = (tag: string) => {
 
 // Google Analyticsイベント送信用の関数
 const sendGAEvent = (eventName: string, params?: Record<string, unknown>) => {
-  if (typeof window !== "undefined" && (window as any).gtag) {
-    (window as any).gtag("event", eventName, params);
+  if (typeof window !== "undefined" && window.gtag) {
+    window.gtag("event", eventName, params);
   }
 };
 
@@ -624,7 +635,7 @@ export default function WisdomFountain() {
     });
   }, []);
 
-  // モーダルの開閉をトラッキング（開く操作のみ）
+  // モーダ���の開閉をトラッキング（開く操作のみ）
   const handleHowToUseOpen = (isOpen: boolean) => {
     setIsHowToUseOpen(isOpen);
     if (isOpen) {
