@@ -92,6 +92,51 @@ const getTagColor = (tag: string) => {
   }
 };
 
+// Google Analyticsイベント送信用の関数
+const sendGAEvent = (eventName: string, params?: { [key: string]: any }) => {
+  if (typeof window !== "undefined" && (window as any).gtag) {
+    (window as any).gtag("event", eventName, params);
+  }
+};
+
+const handleParseError = (section: string, text: string, error: Error) => {
+  console.error(`JSON解析エラー (${section}):`, error);
+  console.error("問題のあるJSON文字列:", text);
+
+  sendGAEvent("content_parse_error", {
+    keyword,
+    section,
+    error: error.message,
+    raw_text: text.substring(0, 500), // 長すぎる場合に備えて最初の500文字のみ送信
+  });
+
+  throw new Error(`${section}のJSONの解析に失敗しました: ${error.message}`);
+};
+
+const cleanAndParseJSON = (section: string, text: string) => {
+  try {
+    // 文字列内の不正な文字を除去し、JSONとして解析可能な形式に変換
+    const cleanedText = text
+      .replace(/[\u0000-\u001F\u007F-\u009F]/g, "") // 制御文字を削除
+      .replace(/「/g, "\u300C")
+      .replace(/」/g, "\u300D")
+      .replace(/『/g, "\u300E")
+      .replace(/』/g, "\u300F")
+      .replace(/```json/, "")
+      .replace(/```/, "")
+      .trim(); // 前後の空白を削除
+
+    // JSONとして解析
+    return JSON.parse(cleanedText);
+  } catch (e) {
+    if (e instanceof Error) {
+      handleParseError(section, text, e);
+    } else {
+      handleParseError(section, text, new Error("Unknown parsing error"));
+    }
+  }
+};
+
 export default function WisdomFountain() {
   const [keyword, setKeyword] = useState("");
   const [phrases, setPhrases] = useState<Phrase[]>([]);
@@ -124,34 +169,6 @@ export default function WisdomFountain() {
   useEffect(() => {
     console.log("Updated Key Persons:", keyPersons);
   }, [keyPersons]);
-
-  const cleanAndParseJSON = (text: string) => {
-    try {
-      // 文字列内の不正な文字を除去し、JSONとして解析可能な形式に変換
-      const cleanedText = text
-        .replace(/[\u0000-\u001F\u007F-\u009F]/g, "") // 制御文字を削除
-        // .replace(/\\n/g, "\\n") // 改行文字をJSONで使用可能な形式に変換
-        // .replace(/\\r/g, "\\r") // キャリッジリターンをJSONで使用可能な形式に変換
-        // .replace(/\\t/g, "\\t") // タブをJSONで使用可能な形式に変換
-        // .replace(/\\/g, "\\\\") // バックスラッシュをエスケープ
-        // .replace(/"/g, '\\"') // ダブルクォートをエスケープ
-        // .replace(/'/g, "'") // シングルクォートはそのまま
-        .replace(/「/g, "\u300C")
-        .replace(/」/g, "\u300D")
-        .replace(/『/g, "\u300E")
-        .replace(/』/g, "\u300F")
-        .replace(/```json/, "")
-        .replace(/```/, "")
-        .trim(); // 前後の空白を削除
-
-      // JSONとして解析
-      return JSON.parse(cleanedText);
-    } catch (e) {
-      console.error("JSON解析エラー:", e);
-      console.error("問題のあるJSON文字列:", text);
-      throw new Error("JSONの解析に失敗しました");
-    }
-  };
 
   // anyの使用を避けるため、型を明示的に定義します
   interface PhraseItem {
@@ -207,28 +224,51 @@ export default function WisdomFountain() {
       const phrasesText = phrasesResult.response.text();
       console.log("Raw API response for phrases:", phrasesText);
 
-      const phrasesJson = cleanAndParseJSON(phrasesText);
-      console.log("Parsed phrases JSON:", phrasesJson);
+      try {
+        const phrasesJson = cleanAndParseJSON("phrases", phrasesText);
+        console.log("Parsed phrases JSON:", phrasesJson);
 
-      if (!phrasesJson.phrases || !Array.isArray(phrasesJson.phrases)) {
-        throw new Error("Invalid phrases structure in response");
+        if (!phrasesJson.phrases || !Array.isArray(phrasesJson.phrases)) {
+          throw new Error("Invalid phrases structure in response");
+        }
+
+        const newPhrases = phrasesJson.phrases.map((item: PhraseItem) => ({
+          quote: item.quote,
+          background: item.background.replace(/<\/?keyword>/g, ""),
+          rating: item.rating,
+          tags: item.tags || [],
+        }));
+
+        setPhrases(newPhrases);
+      } catch (error) {
+        console.error("フレーズの処理中にエラーが発生しました:", error);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        setPhrasesError(
+          `フレーズの生成中にエラーが発生しました: ${errorMessage}`
+        );
+
+        // GAにエラーイベントを送信
+        sendGAEvent("content_generation_error", {
+          keyword,
+          section: "phrases",
+          error: errorMessage,
+        });
       }
-
-      const newPhrases = phrasesJson.phrases.map((item: PhraseItem) => ({
-        quote: item.quote,
-        background: item.background.replace(/<\/?keyword>/g, ""),
-        rating: item.rating,
-        tags: item.tags || [],
-      }));
-
-      setPhrases(newPhrases);
     } catch (error) {
-      console.error("フレーズの処理中にエラーが発生しました:", error);
+      console.error("Detailed error:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       setPhrasesError(
-        `フレーズの生成中にエラーが発生しました: ${
-          error instanceof Error ? error.message : String(error)
-        }`
+        `コンテンツの生成中にエラーが発生しました。もう一度お試しください。`
       );
+
+      // GAにエラーイベントを送信
+      sendGAEvent("content_generation_error", {
+        keyword,
+        section: "phrases",
+        error: errorMessage,
+      });
     } finally {
       setPhrasesLoading(false);
     }
@@ -262,27 +302,49 @@ export default function WisdomFountain() {
 `;
       const triviasResult = await model.generateContent(triviasPrompt);
       const triviasText = triviasResult.response.text();
-      const triviasJson = cleanAndParseJSON(triviasText);
 
-      if (!triviasJson.trivias || !Array.isArray(triviasJson.trivias)) {
-        throw new Error("Invalid trivias structure in response");
+      try {
+        const triviasJson = cleanAndParseJSON("trivias", triviasText);
+
+        if (!triviasJson.trivias || !Array.isArray(triviasJson.trivias)) {
+          throw new Error("Invalid trivias structure in response");
+        }
+
+        const newTrivias = triviasJson.trivias.map(
+          (item: { content: string; rating: number }) => ({
+            content: item.content,
+            rating: item.rating,
+          })
+        );
+
+        setTrivias(newTrivias);
+      } catch (error) {
+        console.error("雑学の処理中にエラーが発生しました:", error);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        setTriviasError(`雑学の生成中にエラーが発生しました: ${errorMessage}`);
+
+        // GAにエラーイベントを送信
+        sendGAEvent("content_generation_error", {
+          keyword,
+          section: "trivias",
+          error: errorMessage,
+        });
       }
-
-      const newTrivias = triviasJson.trivias.map(
-        (item: { content: string; rating: number }) => ({
-          content: item.content,
-          rating: item.rating,
-        })
-      );
-
-      setTrivias(newTrivias);
     } catch (error) {
-      console.error("雑学の処理中にエラーが発生しました:", error);
+      console.error("Detailed error:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       setTriviasError(
-        `雑学の生成中にエラーが発生しました: ${
-          error instanceof Error ? error.message : String(error)
-        }`
+        `コンテンツの生成中にエラーが発生しました。もう一度お試しください。`
       );
+
+      // GAにエラーイベントを送信
+      sendGAEvent("content_generation_error", {
+        keyword,
+        section: "trivias",
+        error: errorMessage,
+      });
     } finally {
       setTriviasLoading(false);
     }
@@ -326,17 +388,28 @@ export default function WisdomFountain() {
 
       // 用語集の処理
       try {
-        const glossaryJson = cleanAndParseJSON(glossaryText);
+        const glossaryJson = cleanAndParseJSON("glossary", glossaryText);
         console.log("Parsed glossary JSON:", glossaryJson);
         setGlossary(
           Array.isArray(glossaryJson.glossary) ? glossaryJson.glossary : []
         );
       } catch (error) {
         console.error("用語集の処理中にエラーが発生しました:", error);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
         setGlossaryError("用語集の生成中にエラーが発生しました。");
+
+        // GAにエラーイベントを送信
+        sendGAEvent("content_generation_error", {
+          keyword: keyword,
+          section: "glossary",
+          error: errorMessage,
+        });
       }
     } catch (error) {
       console.error("Detailed error:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       if (error instanceof Error && error.message.includes("SAFETY")) {
         setGlossaryError(
           "申し訳ありませんが、安全性の観点から内容を生成できませんでした。別のキーワードをお試しください。"
@@ -346,6 +419,13 @@ export default function WisdomFountain() {
           `コンテンツの生成中にエラーが発生しました。もう一度お試しください。`
         );
       }
+
+      // GAにエラーイベントを送信
+      sendGAEvent("content_generation_error", {
+        keyword: keyword,
+        section: "glossary",
+        error: errorMessage,
+      });
     } finally {
       setGlossaryLoading(false);
     }
@@ -395,46 +475,84 @@ export default function WisdomFountain() {
   ]
 }
 `;
-      const keyPersonResult = await model.generateContent(keyPersonPrompt);
-      const keyPersonText = keyPersonResult.response.text();
-
-      // キーパーソンの処理
-      try {
-        const keyPersonJson = cleanAndParseJSON(keyPersonText);
-        console.log("Parsed key person JSON:", keyPersonJson);
-        const newKeyPersons = Array.isArray(keyPersonJson.keyPersons)
-          ? keyPersonJson.keyPersons.map((person: KeyPersonItem) => ({
-              ...person,
-              image: "https://placehold.jp/100x100.png",
-            }))
-          : [];
-        setKeyPersons(newKeyPersons);
-      } catch (error) {
-        console.error("キーパーソンの処理中にエラーが発生しました:", error);
-        setKeyPersonsError("キーパーソンの生成中にエラーが発生しました。");
-      }
+      const keyPersonJson = cleanAndParseJSON("keyPersons", keyPersonText);
+      console.log("Parsed key person JSON:", keyPersonJson);
+      const newKeyPersons = Array.isArray(keyPersonJson.keyPersons)
+        ? keyPersonJson.keyPersons.map((person: KeyPersonItem) => ({
+            ...person,
+            image: "https://placehold.jp/100x100.png",
+          }))
+        : [];
+      setKeyPersons(newKeyPersons);
     } catch (error) {
-      console.error("Detailed error:", error);
-      if (error instanceof Error && error.message.includes("SAFETY")) {
-        setKeyPersonsError(
-          "申し訳ありませんが、安全性の観点から内容を生成できませんでした。別のキーワードをお試しください。"
-        );
-      } else {
-        setKeyPersonsError(
-          `コンテンツの生成中にエラーが発生しました。もう一度お試しください。`
-        );
-      }
+      console.error("キーパーソンの処理中にエラーが発生しました:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      setKeyPersonsError(
+        `キーパーソンの生成中にエラーが発生しました: ${errorMessage}`
+      );
+
+      // GAにエラーイベントを送信
+      sendGAEvent("content_generation_error", {
+        keyword,
+        section: "keyPersons",
+        error: errorMessage,
+      });
     } finally {
       setKeyPersonsLoading(false);
+    }
+  };
+
+  // エラー処理と表示を行う関数
+  const displaySectionError = (section: string, error: unknown) => {
+    console.error(`Error in ${section}:`, error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // GAイベントを確実に送信
+    sendGAEvent("content_generation_error", {
+      keyword,
+      section,
+      error: errorMessage,
+    });
+
+    // セクション別のエラー状態を更新
+    switch (section) {
+      case "phrases":
+        setPhrasesError(
+          `フレーズの生成中にエラーが発生しました: ${errorMessage}`
+        );
+        break;
+      case "trivias":
+        setTriviasError(
+          `豆知識の生成中にエラーが発生しました: ${errorMessage}`
+        );
+        break;
+      case "glossary":
+        setGlossaryError(
+          `用語集の生成中にエラーが発生しました: ${errorMessage}`
+        );
+        break;
+      case "keyPersons":
+        setKeyPersonsError(
+          `キーパーソンの生成中にエラーが発生しました: ${errorMessage}`
+        );
+        break;
+      default:
+        setError(`コンテンツの生成中にエラーが発生しました: ${errorMessage}`);
     }
   };
 
   const generateContent = async () => {
     if (keyword.trim() === "") return;
     setShowResults(true);
-    setError(null);
     setIsLoading(true);
     setIsThinking(true);
+    clearErrors();
+
+    sendGAEvent("search", {
+      event_category: "Search",
+      keyword: keyword,
+    });
 
     // 結果をクリア
     setPhrases([]);
@@ -450,15 +568,71 @@ export default function WisdomFountain() {
 
     try {
       await Promise.all([
-        generatePhrases(),
-        generateTrivias(),
-        generateGlossary(),
-        generateKeyPersons(),
+        generatePhrases().catch((error) =>
+          displaySectionError("セリフ", error)
+        ),
+        generateTrivias().catch((error) => displaySectionError("雑学", error)),
+        generateGlossary().catch((error) =>
+          displaySectionError("用語集", error)
+        ),
+        generateKeyPersons().catch((error) =>
+          displaySectionError("キーパーソン", error)
+        ),
       ]);
+    } catch (error) {
+      displaySectionError("general", error);
     } finally {
       setIsLoading(false);
       setIsThinking(false);
     }
+  };
+
+  // エラーをクリアする関数
+  const clearErrors = () => {
+    setError(null);
+    setPhrasesError(null);
+    setTriviasError(null);
+    setGlossaryError(null);
+    setKeyPersonsError(null);
+  };
+
+  // ページビューのトラッキング（これは保持します）
+  useEffect(() => {
+    sendGAEvent("page_view", {
+      page_title: document.title,
+      page_location: window.location.href,
+      page_path: window.location.pathname,
+    });
+  }, []);
+
+  // モーダルの開閉をトラッキング（開く操作のみ）
+  const handleHowToUseOpen = (isOpen: boolean) => {
+    setIsHowToUseOpen(isOpen);
+    if (isOpen) {
+      sendGAEvent("modal_interaction", {
+        modal_name: "how_to_use",
+        action: "open",
+      });
+    }
+  };
+
+  const handleAboutOpen = (isOpen: boolean) => {
+    setIsAboutOpen(isOpen);
+    if (isOpen) {
+      sendGAEvent("modal_interaction", {
+        modal_name: "about",
+        action: "open",
+      });
+    }
+  };
+
+  // 外部リンクのクリックをトラッキング
+  const handleExternalLinkClick = (type: string, url: string) => {
+    sendGAEvent("external_link_click", {
+      type,
+      url,
+      keyword: keyword, // 現在のキーワードを含める
+    });
   };
 
   const renderStars = (rating: number) => {
@@ -773,6 +947,12 @@ export default function WisdomFountain() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-gray-600 hover:text-gray-800"
+                                onClick={() =>
+                                  handleExternalLinkClick(
+                                    "twitter",
+                                    person.twitter
+                                  )
+                                }
                               >
                                 <Twitter className="w-4 h-4" />
                               </a>
@@ -781,6 +961,12 @@ export default function WisdomFountain() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-gray-600 hover:text-gray-800"
+                                onClick={() =>
+                                  handleExternalLinkClick(
+                                    "linkedin",
+                                    person.linkedin
+                                  )
+                                }
                               >
                                 <Linkedin className="w-4 h-4" />
                               </a>
@@ -789,6 +975,12 @@ export default function WisdomFountain() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-gray-600 hover:text-gray-800"
+                                onClick={() =>
+                                  handleExternalLinkClick(
+                                    "website",
+                                    person.website
+                                  )
+                                }
                               >
                                 <Globe className="w-4 h-4" />
                               </a>
@@ -852,12 +1044,12 @@ export default function WisdomFountain() {
       </div>
 
       <Footer
-        setIsHowToUseOpen={setIsHowToUseOpen}
-        setIsAboutOpen={setIsAboutOpen}
+        setIsHowToUseOpen={handleHowToUseOpen}
+        setIsAboutOpen={handleAboutOpen}
       />
 
-      <HowToUseModal isOpen={isHowToUseOpen} setIsOpen={setIsHowToUseOpen} />
-      <AboutModal isOpen={isAboutOpen} setIsOpen={setIsAboutOpen} />
+      <HowToUseModal isOpen={isHowToUseOpen} setIsOpen={handleHowToUseOpen} />
+      <AboutModal isOpen={isAboutOpen} setIsOpen={handleAboutOpen} />
     </div>
   );
 }
