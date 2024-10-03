@@ -35,6 +35,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { BorderBeam } from "@/components/ui/border-beam";
 
 // Window インターフェースを拡張する
 declare global {
@@ -1081,7 +1082,8 @@ function SearchInput({
   isLoading,
 }: SearchInputProps) {
   return (
-    <div className="relative w-full">
+    <div className="relative w-full rounded-full">
+      <BorderBeam />
       <Input
         type="text"
         placeholder="キーワードを入力"
