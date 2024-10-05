@@ -25,7 +25,6 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
 import logoImage from "@/app/images/logo.png";
@@ -48,22 +47,67 @@ declare global {
   }
 }
 
-// Gemini APIの設定
-const genAI = new GoogleGenerativeAI(
-  process.env.NEXT_PUBLIC_GEMINI_API_KEY ?? ""
-);
+// Perplexity APIの設定を追加
+const PERPLEXITY_API_KEY = process.env.NEXT_PUBLIC_PERPLEXITY_API_KEY ?? "";
+const PERPLEXITY_API_URL = "https://api.perplexity.ai/chat/completions";
+
+// Perplexity APIを使用するための関数を修正
+async function generateWithPerplexity(
+  systemPrompt: string,
+  userPrompt: string
+) {
+  try {
+    const response = await fetch(PERPLEXITY_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${PERPLEXITY_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "llama-3.1-sonar-small-128k-online", // 使用するモデル
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        max_tokens: 4096, // 生成するトークンの最大数
+        temperature: 0.2, // 生成の多様性（低いほど一貫性が高い）
+        top_p: 0.9, // 生成時に考慮する確率の閾値
+        return_citations: true, // 引用情報を返すかどうか
+        search_domain_filter: ["-kyoko-np.net"], // 検索ドメインのフィルター
+        return_images: false, // 画像を返すかどうか
+        return_related_questions: false, // 関連質問を返すかどうか
+        search_recency_filter: "year", // 検索の新しさフィルター
+        top_k: 0, // 考慮する候補の数（0は制限なし）
+        stream: false, // ストリーミング生成を使用するかどうか
+        presence_penalty: 0, // 新しいトークンの生成ペナルティ
+        frequency_penalty: 1, // 頻出トークンの生成ペナルティ
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `API request failed: ${response.status} ${response.statusText}\n${errorText}`
+      );
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error("Perplexity API error:", error);
+    throw error;
+  }
+}
 
 // 型定義を更新
 interface Phrase {
   quote: string;
   background: string;
-  rating: number;
   tags: string[];
 }
 
 interface Trivia {
   content: string;
-  rating: number; // 評価を追加
 }
 
 interface GlossaryItem {
@@ -196,7 +240,6 @@ export default function WisdomFountain() {
   interface PhraseItem {
     quote: string;
     background: string;
-    rating: number;
     tags: string[];
   }
 
@@ -204,46 +247,44 @@ export default function WisdomFountain() {
     setPhrasesLoading(true);
     setPhrasesError(null);
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-002" });
+      const systemPrompt =
+        "あなたは知識豊富なAIアシスタントです。与えられたキーワードに関連する、興味深くて知的な会話のためのフレーズを生成してください。常に指定されたJSONフォーマットで回答してください。";
+      const userPrompt = `
+      キーワード「${keyword}」について、マニアやクライアントから「こいつわかってるな」「お、そんなことまで知ってるんだ」「君、賢いね」と思わせるような、短くて知り合いに話すようなセリフを5つ生成してください。各セリフには素人にもわかる詳しい200文字以上の背景説明を付けてください。
 
-      // フレーズの生成プロンプトを更新
-      const phrasesPrompt = `
-キーワード「${keyword}」について、マニアやクライアントから「こいつわかってるな」「お、そんなことまで知ってるんだ」「君、賢いね」と思わせるような、短くて知り合いに話すようなセリフを5つ生成してください。各セリフには素人にもわかる詳しい200文字以上の背景説明と内容に応じた推奨度を付けてください。
+      セリフの中で重要なキーワードや専門用語や大事なポイントには<keyword>タグを付けてください。例: <keyword>重要な用語</keyword>
+      背景説明には<keyword>タグを使用しないでください。
 
-セリフの中で重要なキーワードや専門用語や大事なポイントには<keyword>タグを付けてください。例: <keyword>重要な用語</keyword>
-背景説明には<keyword>タグを使用しないでください。
+      以下の4つのタグを当てはまる場合にのみ付けてください：
+      - トレンド：最新の動向や流行を示す情報
+      - 問題提起：業界や分野における課題や問題点を指摘する情報
+      - 競合情報：${keyword}の競合他社や競合製品に関する洞察
+      - 表彰・称賛：業界内での評価や成果に関する情報
 
-以下の4つのタグを当てはまる場合にのみ付けてください：
-- トレンド：最新の動向や流行を示す情報
-- 問題提起：業界や分野における課題や問題点を指摘する情報
-- 競合情報：${keyword}の競合他社や競合製品に関する洞察
-- 表彰・称賛：業界内での評価や成果に関する情報
+      これらのタグに関連する情報を含むセリフを優先的に生成してください。
 
-これらのタグに関連する情報を含むセリフを優先的に生成してください。
+      以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
 
-以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
+      {
+        "phrases": [
+          {
+            "quote": "セリフ1（<keyword>タグ付き）",
+            "background": "背景説明1（タグなし）",
+            "tags": ["トレンド", "競合情報"]
+          },
+          {
+            "quote": "セリフ2（<keyword>タグ付き）",
+            "background": "背景説明2（タグなし）",
+            "tags": ["問題提起"]
+          }
+        ]
+      }
+      `;
 
-{
-  "phrases": [
-    {
-      "quote": "セリフ1（<keyword>タグ付き）",
-      "background": "背景説明1（タグなし）",
-      "rating": 5,
-      "tags": ["トレンド", "競合情報"]
-    },
-    {
-      "quote": "セリフ2（<keyword>タグ付き）",
-      "background": "背景説明2（タグなし）",
-      "rating": 4.5,
-      "tags": ["問題提起"]
-    }
-  ]
-}
-`;
-      const phrasesResult = await model.generateContent(phrasesPrompt);
-      console.log("Received response for phrases:", phrasesResult);
-
-      const phrasesText = phrasesResult.response.text();
+      const phrasesText = await generateWithPerplexity(
+        systemPrompt,
+        userPrompt
+      );
       console.log("Raw API response for phrases:", phrasesText);
 
       try {
@@ -257,7 +298,6 @@ export default function WisdomFountain() {
         const newPhrases = phrasesJson.phrases.map((item: PhraseItem) => ({
           quote: item.quote,
           background: item.background.replace(/<\/?keyword>/g, ""),
-          rating: item.rating,
           tags: item.tags || [],
         }));
 
@@ -300,30 +340,30 @@ export default function WisdomFountain() {
     setTriviasLoading(true);
     setTriviasError(null);
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-002" });
+      const systemPrompt =
+        "あなたは知識豊富なAIアシスタントです。与えられたキーワードに関連する面白い雑学を生成してください。常に指定されたJSONフォーマットで回答してください。";
+      const userPrompt = `
+      キーワード「${keyword}」に関連する面白い雑学を5つ生成してください。各雑学は100文字程度で、興味深く、記憶に残るものにしてください。
+      雑学の文章の中で面白いポイントや強調すべきポイントには、文中に<keyword>タグを付けてください。
 
-      const triviasPrompt = `
-キーワード「${keyword}」に関連する面白い雑学を5つ生成してください。各雑学は100文字程度で、興味深く、記憶に残るものにしてください。
-雑学の文章の中で面白いポイントや強調すべきポイントには<keyword>タグを付けてください。
-また、各雑学に1から5までの評価（面白さや重要度）を付けてください。
+      以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
 
-以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
+      {
+        "trivias": [
+          {
+            "content": "雑学1の内容（<keyword>タグ付き）"
+          },
+          {
+            "content": "雑学2の内容（<keyword>タグ付き）"
+          }
+        ]
+      }
+      `;
 
-{
-  "trivias": [
-    {
-      "content": "雑学1の内容（<keyword>タグ付き）",
-      "rating": 4
-    },
-    {
-      "content": "雑学2の内容（<keyword>タグ付き）",
-      "rating": 5
-    }
-  ]
-}
-`;
-      const triviasResult = await model.generateContent(triviasPrompt);
-      const triviasText = triviasResult.response.text();
+      const triviasText = await generateWithPerplexity(
+        systemPrompt,
+        userPrompt
+      );
 
       try {
         const triviasJson = cleanAndParseJSON("雑学", triviasText, keyword);
@@ -333,9 +373,8 @@ export default function WisdomFountain() {
         }
 
         const newTrivias = triviasJson.trivias.map(
-          (item: { content: string; rating: number }) => ({
+          (item: { content: string }) => ({
             content: item.content,
-            rating: item.rating,
           })
         );
 
@@ -376,37 +415,38 @@ export default function WisdomFountain() {
     setGlossaryLoading(true);
     setGlossaryError(null);
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-002" });
+      const systemPrompt =
+        "あなたは知識豊富なAIアシスタントです。与えられたキーワードに関連する重要な用語とその定義を生成してください。常に指定されたJSONフォーマットで回答してください。";
+      const userPrompt = `
+      キーワード「${keyword}」に関連する8つの重要な用語とその素人にもわかる詳しい100文字以上の説明を日本語で生成してください。
+      以下の点に注意してください：
+      1. 人物名やキャラクター名は含めないでください。
+      2. 一般的な概念、技術用語、プロセス、理論などに焦点を当ててください。
+      3. 各用語は、キーワードに直接関連し、その分野の理解を深めるものを選んでください。
 
-      // 用語集の生成プロンプトを更新
-      const glossaryPrompt = `
-キーワード「${keyword}」に関連する8つの重要な用語とその素人にもわかる詳しい100文字以上の説明を生成してください。
-以下の点に注意してください：
-1. 人物名やキャラクター名は含めないでください。
-2. 一般的な概念、技術用語、プロセス、理論などに焦点を当ててください。
-3. 各用語は、キーワードに直接関連し、その分野の理解を深めるものを選んでください。
+      以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
 
-以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
-
-{
-  "glossary": [
-    {
-      "term": "用語1",
-      "definition": "定義1"
-    },
-    {
-      "term": "用語2",
-      "definition": "定義2"
-    },
-    {
-      "term": "用語3",
-      "definition": "定義3"
-    }
-  ]
-}
-`;
-      const glossaryResult = await model.generateContent(glossaryPrompt);
-      const glossaryText = glossaryResult.response.text();
+      {
+        "glossary": [
+          {
+            "term": "用語1",
+            "definition": "定義1"
+          },
+          {
+            "term": "用語2",
+            "definition": "定義2"
+          },
+          {
+            "term": "用語3",
+            "definition": "定義3"
+          }
+        ]
+      }
+      `;
+      const glossaryText = await generateWithPerplexity(
+        systemPrompt,
+        userPrompt
+      );
 
       // 用語集の処理
       try {
@@ -453,30 +493,21 @@ export default function WisdomFountain() {
     }
   };
 
-  // anyの使用を避けるため、型を明示的に定義します
-  interface KeyPersonItem {
-    name: string;
-    description: string;
-    twitter: string;
-    linkedin: string;
-    website: string;
-  }
-
   const generateKeyPersons = async () => {
     setKeyPersonsLoading(true);
     setKeyPersonsError(null);
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-002" });
-
-      // キーパーソンの生成
-      const keyPersonPrompt = `
-        キーワード「${keyword}」に関連する重要な人物を5人選び、以下の情報を生成してください：
+      const systemPrompt =
+        "あなたは知識豊富なAIアシスタントです。与えられたキーワードに関連する重要な人物の情報を生成してください。常に指定されたJSONフォーマットで回答してください。";
+      const userPrompt = `
+        キーワード「${keyword}」に関連する重要な人物を5人選び、以下の情報を日本語で生成してください：
         1. その人物の名前
         2. 素人にもわかる詳しい100文字以上の説明（その人物の経歴や業績に加え、キーワード「${keyword}」との関連性も含めてください）
         3. TwitterとLinkedInのURL
         4. 公式ウェブサイトのURL
 
         以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
+        なるべく実在する人物を選んでください。
 
         {
           "keyPersons": [
@@ -498,8 +529,10 @@ export default function WisdomFountain() {
         }
       `;
 
-      const keyPersonResult = await model.generateContent(keyPersonPrompt);
-      const keyPersonText = keyPersonResult.response.text();
+      const keyPersonText = await generateWithPerplexity(
+        systemPrompt,
+        userPrompt
+      );
 
       const keyPersonJson = cleanAndParseJSON(
         "キーパーソン",
@@ -509,7 +542,7 @@ export default function WisdomFountain() {
       console.log("Parsed key person JSON:", keyPersonJson);
 
       const newKeyPersons = Array.isArray(keyPersonJson.keyPersons)
-        ? keyPersonJson.keyPersons.map((person: KeyPersonItem) => ({
+        ? keyPersonJson.keyPersons.map((person: KeyPerson) => ({
             ...person,
             image: "https://placehold.jp/100x100.png",
           }))
@@ -636,7 +669,7 @@ export default function WisdomFountain() {
     });
   }, []);
 
-  // モーダ���の開閉をトラッキング（開く操作のみ）
+  // モーダルの開閉をトラッキング（開く操作のみ）
   const handleHowToUseOpen = (isOpen: boolean) => {
     setIsHowToUseOpen(isOpen);
     if (isOpen) {
@@ -664,19 +697,6 @@ export default function WisdomFountain() {
       url,
       keyword: keyword, // 現在のキーワードを含める
     });
-  };
-
-  const renderStars = (rating: number) => {
-    return Array(5)
-      .fill(0)
-      .map((_, i) => (
-        <Star
-          key={i}
-          className={`w-4 h-4 ${
-            i < rating ? "text-yellow-400 fill-yellow-400" : "text-gray-400"
-          }`}
-        />
-      ));
   };
 
   return (
@@ -779,27 +799,22 @@ export default function WisdomFountain() {
                         className="bg-white rounded-lg shadow-sm border border-purple-100"
                       >
                         <div className="py-3 px-4 bg-gradient-to-r from-purple-50 to-blue-50 flex justify-between items-center">
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center">
-                              <h3 className="text-base text-purple-800 tracking-wide flex items-center">
-                                <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
-                                セリフ {index + 1}
-                              </h3>
-                              <div className="flex ml-6">
-                                {phrase.tags.map((tag, tagIndex) => (
-                                  <span
-                                    key={tagIndex}
-                                    className={`text-xs font-bold ${getTagColor(
-                                      tag
-                                    )} px-2 py-0.5 rounded-full mr-3`}
-                                  >
-                                    {tag}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                            <div className="flex items-center">
-                              {renderStars(phrase.rating)}
+                          <div className="flex items-center">
+                            <h3 className="text-base text-purple-800 tracking-wide flex items-center">
+                              <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
+                              セリフ {index + 1}
+                            </h3>
+                            <div className="flex ml-6">
+                              {phrase.tags.map((tag, tagIndex) => (
+                                <span
+                                  key={tagIndex}
+                                  className={`text-xs font-bold ${getTagColor(
+                                    tag
+                                  )} px-2 py-0.5 rounded-full mr-3`}
+                                >
+                                  {tag}
+                                </span>
+                              ))}
                             </div>
                           </div>
                         </div>
@@ -854,9 +869,6 @@ export default function WisdomFountain() {
                               <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
                               雑学 {index + 1}
                             </h3>
-                          </div>
-                          <div className="flex items-center">
-                            {renderStars(trivia.rating)}
                           </div>
                         </div>
                         <div className="pt-4 pb-6 px-4">
@@ -1222,7 +1234,6 @@ function TriviaSkeletonLoader() {
         >
           <div className="py-3 px-4 bg-gradient-to-r from-purple-50 to-blue-50 flex justify-between items-center">
             <Skeleton className="h-6 w-1/3" />
-            <Skeleton className="h-4 w-24" />
           </div>
           <div className="pt-4 pb-6 px-4">
             <Skeleton className="h-6 w-full mb-2" />

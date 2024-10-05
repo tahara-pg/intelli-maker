@@ -50,7 +50,7 @@ export default function RootLayout({
         </Script>
         <meta
           httpEquiv="Content-Security-Policy"
-          content="default-src 'self'; connect-src 'self' https://www.google-analytics.com https://generativelanguage.googleapis.com; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://storage.googleapis.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://placehold.jp; worker-src 'self'; frame-src 'self';"
+          content="default-src 'self'; connect-src 'self' https://www.google-analytics.com https://api.perplexity.ai; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://storage.googleapis.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://placehold.jp; worker-src 'self'; frame-src 'self';"
         />
       </head>
       <body
