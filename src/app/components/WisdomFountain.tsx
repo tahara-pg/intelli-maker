@@ -92,6 +92,8 @@ async function generateWithPerplexity(
     }
 
     const data = await response.json();
+    console.log("Raw API response", data);
+
     return data.choices[0].message.content;
   } catch (error) {
     console.error("Perplexity API error:", error);
@@ -118,8 +120,7 @@ interface GlossaryItem {
 interface KeyPerson {
   name: string;
   description: string;
-  image: string;
-  twitter: string;
+  x: string;
   linkedin: string;
   website: string;
 }
@@ -285,7 +286,6 @@ export default function WisdomFountain() {
         systemPrompt,
         userPrompt
       );
-      console.log("Raw API response for phrases:", phrasesText);
 
       try {
         const phrasesJson = cleanAndParseJSON("セリフ", phrasesText, keyword);
@@ -503,8 +503,8 @@ export default function WisdomFountain() {
         キーワード「${keyword}」に関連する重要な人物を5人選び、以下の情報を日本語で生成してください：
         1. その人物の名前
         2. 素人にもわかる詳しい100文字以上の説明（その人物の経歴や業績に加え、キーワード「${keyword}」との関連性も含めてください）
-        3. TwitterとLinkedInのURL
-        4. 公式ウェブサイトのURL
+        3. X(旧Twitter)とLinkedInのURL（見つからない場合は空）
+        4. 公式ウェブサイトのURL（見つからない場合は空）
 
         以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
         なるべく実在する人物を選んでください。
@@ -514,14 +514,14 @@ export default function WisdomFountain() {
             {
               "name": "人物名1",
               "description": "人物の説明1（キーワードとの関連性を含む）",
-              "twitter": "https://twitter.com/example1",
+              "x": "https://x.com/example1",
               "linkedin": "https://www.linkedin.com/in/example1",
               "website": "https://example1.com"
             },
             {
               "name": "人物名2",
               "description": "人物の説明2（キーワードとの関連性を含む）",
-              "twitter": "https://twitter.com/example2",
+              "x": "https://x.com/example2",
               "linkedin": "https://www.linkedin.com/in/example2",
               "website": "https://example2.com"
             }
@@ -542,10 +542,7 @@ export default function WisdomFountain() {
       console.log("Parsed key person JSON:", keyPersonJson);
 
       const newKeyPersons = Array.isArray(keyPersonJson.keyPersons)
-        ? keyPersonJson.keyPersons.map((person: KeyPerson) => ({
-            ...person,
-            image: "https://placehold.jp/100x100.png",
-          }))
+        ? keyPersonJson.keyPersons
         : [];
       setKeyPersons(newKeyPersons);
     } catch (error) {
@@ -957,71 +954,59 @@ export default function WisdomFountain() {
                         className="bg-white rounded-lg shadow-sm border border-purple-100"
                       >
                         <CardContent className="p-6">
-                          <div className="flex items-center space-x-6">
-                            <Image
-                              src={person.image}
-                              alt={`${person.name}の画像`}
-                              width={96}
-                              height={96}
-                              className="rounded-full border-2 border-purple-100"
-                            />
-                            <div>
-                              <h3 className="text-xl font-bold text-purple-800 mb-2">
-                                {person.name}
-                              </h3>
-                              <p className="text-gray-700 mb-4">
-                                {person.description}
-                              </p>
-                              <div className="flex space-x-4">
-                                {person.twitter && (
-                                  <a
-                                    href={person.twitter}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-gray-600 hover:text-gray-800"
-                                    onClick={() =>
-                                      handleExternalLinkClick(
-                                        "twitter",
-                                        person.twitter
-                                      )
-                                    }
-                                  >
-                                    <Twitter className="w-5 h-5" />
-                                  </a>
-                                )}
-                                {person.linkedin && (
-                                  <a
-                                    href={person.linkedin}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-gray-600 hover:text-gray-800"
-                                    onClick={() =>
-                                      handleExternalLinkClick(
-                                        "linkedin",
-                                        person.linkedin
-                                      )
-                                    }
-                                  >
-                                    <Linkedin className="w-5 h-5" />
-                                  </a>
-                                )}
-                                {person.website && (
-                                  <a
-                                    href={person.website}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-gray-600 hover:text-gray-800"
-                                    onClick={() =>
-                                      handleExternalLinkClick(
-                                        "website",
-                                        person.website
-                                      )
-                                    }
-                                  >
-                                    <Globe className="w-5 h-5" />
-                                  </a>
-                                )}
-                              </div>
+                          <div className="flex flex-col">
+                            <h3 className="text-xl font-bold text-purple-800 mb-2">
+                              {person.name}
+                            </h3>
+                            <p className="text-gray-700 mb-4">
+                              {person.description}
+                            </p>
+                            <div className="flex space-x-4">
+                              {person.x && (
+                                <a
+                                  href={person.x}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-gray-600 hover:text-gray-800"
+                                  onClick={() =>
+                                    handleExternalLinkClick("x", person.x)
+                                  }
+                                >
+                                  <Twitter className="w-5 h-5" />
+                                </a>
+                              )}
+                              {person.linkedin && (
+                                <a
+                                  href={person.linkedin}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-gray-600 hover:text-gray-800"
+                                  onClick={() =>
+                                    handleExternalLinkClick(
+                                      "linkedin",
+                                      person.linkedin
+                                    )
+                                  }
+                                >
+                                  <Linkedin className="w-5 h-5" />
+                                </a>
+                              )}
+                              {person.website && (
+                                <a
+                                  href={person.website}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-gray-600 hover:text-gray-800"
+                                  onClick={() =>
+                                    handleExternalLinkClick(
+                                      "website",
+                                      person.website
+                                    )
+                                  }
+                                >
+                                  <Globe className="w-5 h-5" />
+                                </a>
+                              )}
                             </div>
                           </div>
                         </CardContent>
@@ -1192,16 +1177,13 @@ function KeyPersonsSkeletonLoader() {
           className="bg-white rounded-lg shadow-sm border border-purple-100"
         >
           <CardContent className="p-6">
-            <div className="flex items-center space-x-6">
-              <Skeleton className="w-24 h-24 rounded-full" />
-              <div>
-                <Skeleton className="h-6 w-32 mb-2" />
-                <Skeleton className="h-4 w-64 mb-4" />
-                <div className="flex space-x-4">
-                  <Skeleton className="w-5 h-5" />
-                  <Skeleton className="w-5 h-5" />
-                  <Skeleton className="w-5 h-5" />
-                </div>
+            <div className="flex flex-col">
+              <Skeleton className="h-6 w-32 mb-2" />
+              <Skeleton className="h-4 w-64 mb-4" />
+              <div className="flex space-x-4">
+                <Skeleton className="w-5 h-5" />
+                <Skeleton className="w-5 h-5" />
+                <Skeleton className="w-5 h-5" />
               </div>
             </div>
           </CardContent>
