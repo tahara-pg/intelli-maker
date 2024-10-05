@@ -973,48 +973,54 @@ export default function WisdomFountain() {
                                 {person.description}
                               </p>
                               <div className="flex space-x-4">
-                                <a
-                                  href={person.twitter}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-gray-600 hover:text-gray-800"
-                                  onClick={() =>
-                                    handleExternalLinkClick(
-                                      "twitter",
-                                      person.twitter
-                                    )
-                                  }
-                                >
-                                  <Twitter className="w-5 h-5" />
-                                </a>
-                                <a
-                                  href={person.linkedin}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-gray-600 hover:text-gray-800"
-                                  onClick={() =>
-                                    handleExternalLinkClick(
-                                      "linkedin",
-                                      person.linkedin
-                                    )
-                                  }
-                                >
-                                  <Linkedin className="w-5 h-5" />
-                                </a>
-                                <a
-                                  href={person.website}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-gray-600 hover:text-gray-800"
-                                  onClick={() =>
-                                    handleExternalLinkClick(
-                                      "website",
-                                      person.website
-                                    )
-                                  }
-                                >
-                                  <Globe className="w-5 h-5" />
-                                </a>
+                                {person.twitter && (
+                                  <a
+                                    href={person.twitter}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-gray-600 hover:text-gray-800"
+                                    onClick={() =>
+                                      handleExternalLinkClick(
+                                        "twitter",
+                                        person.twitter
+                                      )
+                                    }
+                                  >
+                                    <Twitter className="w-5 h-5" />
+                                  </a>
+                                )}
+                                {person.linkedin && (
+                                  <a
+                                    href={person.linkedin}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-gray-600 hover:text-gray-800"
+                                    onClick={() =>
+                                      handleExternalLinkClick(
+                                        "linkedin",
+                                        person.linkedin
+                                      )
+                                    }
+                                  >
+                                    <Linkedin className="w-5 h-5" />
+                                  </a>
+                                )}
+                                {person.website && (
+                                  <a
+                                    href={person.website}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-gray-600 hover:text-gray-800"
+                                    onClick={() =>
+                                      handleExternalLinkClick(
+                                        "website",
+                                        person.website
+                                      )
+                                    }
+                                  >
+                                    <Globe className="w-5 h-5" />
+                                  </a>
+                                )}
                               </div>
                             </div>
                           </div>
