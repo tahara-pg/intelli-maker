@@ -207,11 +207,11 @@ const cleanAndParseJSON = (section: string, text: string, keyword: string) => {
 async function getKeywordExplanation(keyword: string): Promise<string> {
   const systemPrompt =
     "あなたは知識豊富なAIアシスタントです。与えられたキーワードについて簡潔な解説を提供してください。";
-  const userPrompt = `キーワード「${keyword}」について、100文字程度の簡潔な解説を日本語で生成してください。`;
+  const userPrompt = `キーワード「${keyword}」について、100文字程度の簡潔な解説を日本語で生成してください。重要な部分は<keyword>タグで囲んでください。`;
 
   try {
     const explanation = await generateWithPerplexity(systemPrompt, userPrompt);
-    return `「${keyword}」の解説：${explanation}`;
+    return explanation;
   } catch (error) {
     console.error("用語の解説生成中にエラーが発生しました:", error);
     return `「${keyword}」の解説を生成できませんでした。`;
@@ -239,6 +239,8 @@ export default function WisdomFountain() {
   const [isHowToUseOpen, setIsHowToUseOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [explanation, setExplanation] = useState("");
+  const [explanationLoading, setExplanationLoading] = useState(false);
+  const [explanationError, setExplanationError] = useState<string | null>(null);
 
   useEffect(() => {
     console.log("Updated Phrases:", phrases);
@@ -618,6 +620,20 @@ export default function WisdomFountain() {
     }
   };
 
+  const generateExplanation = async () => {
+    setExplanationLoading(true);
+    setExplanationError(null);
+    try {
+      const keywordExplanation = await getKeywordExplanation(keyword);
+      setExplanation(keywordExplanation);
+    } catch (error) {
+      console.error("用語の解説生成中にエラーが発生しました:", error);
+      setExplanationError("用語の解説を生成できませんでした。");
+    } finally {
+      setExplanationLoading(false);
+    }
+  };
+
   const generateContent = async () => {
     if (keyword.trim() === "") return;
     setShowResults(true);
@@ -642,13 +658,13 @@ export default function WisdomFountain() {
     setTriviasLoading(true);
     setGlossaryLoading(true);
     setKeyPersonsLoading(true);
+    setExplanationLoading(true);
 
     try {
-      // キーワードの説明を取得
-      const keywordExplanation = await getKeywordExplanation(keyword);
-      setExplanation(keywordExplanation);
-
       await Promise.all([
+        generateExplanation().catch((error) =>
+          displaySectionError("用語の解説", error)
+        ),
         generatePhrases().catch((error) =>
           displaySectionError("セリフ", error)
         ),
@@ -802,7 +818,7 @@ export default function WisdomFountain() {
             className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4"
           >
             {/* 用語の解説セクション */}
-            <div className="bg-white rounded-lg shadow-md border border-purple-100 col-span-2">
+            <div className="bg-white rounded-lg shadow-md border border-purple-100 col-span-1 md:col-span-2 max-w-4xl mx-auto w-full">
               <div className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
                 <h2 className="text-xl font-semibold text-gray-800 tracking-wider flex items-center">
                   <Star className="w-5 h-5 mr-2" />
@@ -810,12 +826,31 @@ export default function WisdomFountain() {
                 </h2>
               </div>
               <div className="py-6 px-4">
-                <p className="text-lg text-gray-700">{explanation}</p>
+                {explanationLoading ? (
+                  <ExplanationSkeletonLoader />
+                ) : explanationError ? (
+                  <ErrorCard
+                    error={explanationError}
+                    retry={() => generateExplanation()}
+                  />
+                ) : (
+                  <p className="text-lg text-gray-700 leading-relaxed">
+                    {explanation.split(/<keyword>|<\/keyword>/).map((part, i) =>
+                      i % 2 === 0 ? (
+                        part
+                      ) : (
+                        <span key={i} className="text-purple-800 font-semibold">
+                          {part}
+                        </span>
+                      )
+                    )}
+                  </p>
+                )}
               </div>
             </div>
 
             {/* セリフセクション */}
-            <div className="bg-white rounded-lg shadow-md border border-purple-100">
+            <div className="bg-white rounded-lg shadow-md border border-purple-100 col-span-1">
               <div className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
                 <h2 className="text-xl font-semibold text-gray-800 tracking-wider flex items-center">
                   <MessageSquare className="w-5 h-5 mr-2" />
@@ -880,7 +915,7 @@ export default function WisdomFountain() {
             </div>
 
             {/* 雑学セクション */}
-            <div className="bg-white rounded-lg shadow-md border border-purple-100">
+            <div className="bg-white rounded-lg shadow-md border border-purple-100 col-span-1">
               <div className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
                 <h2 className="text-xl font-semibold text-gray-800 tracking-wider flex items-center">
                   <Sparkles className="w-5 h-5 mr-2" />
@@ -930,7 +965,7 @@ export default function WisdomFountain() {
             </div>
 
             {/* 用語集セクション */}
-            <div className="bg-white rounded-lg shadow-md border border-purple-100">
+            <div className="bg-white rounded-lg shadow-md border border-purple-100 col-span-1">
               <div className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
                 <h2 className="text-xl font-semibold text-gray-800 tracking-wider flex items-center">
                   <BookOpen className="w-5 h-5 mr-2" />
@@ -970,7 +1005,7 @@ export default function WisdomFountain() {
             </div>
 
             {/* キーパーソンセクション */}
-            <div className="bg-white rounded-lg shadow-md border border-purple-100">
+            <div className="bg-white rounded-lg shadow-md border border-purple-100 col-span-1">
               <div className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
                 <h2 className="text-xl font-semibold text-gray-800 tracking-wider flex items-center">
                   <User className="w-5 h-5 mr-2" />
@@ -1370,5 +1405,16 @@ function AboutModal({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// コンポーネントの外部に新しいスケルトンローダーを追加
+function ExplanationSkeletonLoader() {
+  return (
+    <div className="space-y-2">
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-4 w-5/6" />
+      <Skeleton className="h-4 w-4/6" />
+    </div>
   );
 }
