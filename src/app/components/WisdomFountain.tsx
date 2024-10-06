@@ -204,6 +204,20 @@ const cleanAndParseJSON = (section: string, text: string, keyword: string) => {
   }
 };
 
+async function getKeywordExplanation(keyword: string): Promise<string> {
+  const systemPrompt =
+    "あなたは知識豊富なAIアシスタントです。与えられたキーワードについて簡潔な解説を提供してください。";
+  const userPrompt = `キーワード「${keyword}」について、100文字程度の簡潔な解説を日本語で生成してください。`;
+
+  try {
+    const explanation = await generateWithPerplexity(systemPrompt, userPrompt);
+    return `「${keyword}」の解説：${explanation}`;
+  } catch (error) {
+    console.error("用語の解説生成中にエラーが発生しました:", error);
+    return `「${keyword}」の解説を生成できませんでした。`;
+  }
+}
+
 export default function WisdomFountain() {
   const [keyword, setKeyword] = useState("");
   const [phrases, setPhrases] = useState<Phrase[]>([]);
@@ -224,6 +238,7 @@ export default function WisdomFountain() {
   const [isThinking, setIsThinking] = useState(false);
   const [isHowToUseOpen, setIsHowToUseOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [explanation, setExplanation] = useState("");
 
   useEffect(() => {
     console.log("Updated Phrases:", phrases);
@@ -620,6 +635,7 @@ export default function WisdomFountain() {
     setTrivias([]);
     setGlossary([]);
     setKeyPersons([]);
+    setExplanation("");
 
     // ローディング状態をセット
     setPhrasesLoading(true);
@@ -628,6 +644,10 @@ export default function WisdomFountain() {
     setKeyPersonsLoading(true);
 
     try {
+      // キーワードの説明を取得
+      const keywordExplanation = await getKeywordExplanation(keyword);
+      setExplanation(keywordExplanation);
+
       await Promise.all([
         generatePhrases().catch((error) =>
           displaySectionError("セリフ", error)
@@ -774,16 +794,26 @@ export default function WisdomFountain() {
           </motion.div>
         </AnimatePresence>
 
-        {(showResults ||
-          phrasesLoading ||
-          glossaryLoading ||
-          keyPersonsLoading) && (
+        {showResults && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
             className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4"
           >
+            {/* 用語の解説セクション */}
+            <div className="bg-white rounded-lg shadow-md border border-purple-100 col-span-2">
+              <div className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
+                <h2 className="text-xl font-semibold text-gray-800 tracking-wider flex items-center">
+                  <Star className="w-5 h-5 mr-2" />
+                  用語の解説
+                </h2>
+              </div>
+              <div className="py-6 px-4">
+                <p className="text-lg text-gray-700">{explanation}</p>
+              </div>
+            </div>
+
             {/* セリフセクション */}
             <div className="bg-white rounded-lg shadow-md border border-purple-100">
               <div className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
@@ -1290,12 +1320,12 @@ function HowToUseModal({
         </DialogHeader>
         <div className="mt-4 space-y-4">
           <p>
-            1. キーワードを入力:
-            興味のあるトピックや知りたい分野のキーワードを入力します。
+            1. 用語・トピックを入力:
+            興味のあるトピックや知りたい分野の用語・トピックを入力します。
           </p>
           <p>
             2. 生成ボタンをクリック:
-            AIが入力されたキーワードに基づいて、関連する情報を生成します。
+            AIが入力された用語・トピックに基づいて、関連する情報を生成します。
           </p>
           <p>
             3. 結果を確認:
