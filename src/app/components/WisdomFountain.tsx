@@ -705,16 +705,18 @@ export default function WisdomFountain() {
             initial={false}
             animate={{}}
             exit={{}}
-            className={`flex ${
-              showResults ? "flex-row items-center" : "flex-col items-center"
-            } justify-between mb-8`}
+            className={`flex flex-col items-center justify-between mb-8 ${
+              showResults ? "md:flex-row md:items-center" : ""
+            }`}
           >
             <motion.div
-              className={`${showResults ? "w-1/3" : "w-full max-w-2xl"} mb-8`}
+              className={`${
+                showResults ? "w-full md:w-1/3 md:max-w-lg" : "w-full max-w-2xl"
+              } mb-8`}
               initial={false}
               animate={{
-                width: showResults ? "30%" : "100%",
-                marginBottom: showResults ? "0" : "2rem",
+                width: showResults ? "100%" : "100%",
+                marginBottom: showResults ? "2rem" : "2rem",
               }}
               transition={{ duration: 0.5 }}
             >
@@ -728,10 +730,12 @@ export default function WisdomFountain() {
             </motion.div>
 
             <motion.div
-              className={`${showResults ? "w-2/3" : "w-full max-w-2xl"}`}
+              className={`${
+                showResults ? "w-full md:w-2/3" : "w-full max-w-2xl"
+              }`}
               initial={false}
               animate={{
-                width: showResults ? "50%" : "100%",
+                width: showResults ? "100%" : "100%",
               }}
               transition={{ duration: 0.5 }}
             >
