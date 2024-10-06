@@ -73,7 +73,7 @@ async function generateWithPerplexity(
         temperature: 0.2, // 生成の多様性（低いほど一貫性が高い）
         top_p: 0.9, // 生成時に考慮する確率の閾値
         return_citations: true, // 引用情報を返すかどうか
-        search_domain_filter: ["-kyoko-np.net"], // 検索ドメインのフィルター
+        search_domain_filter: ["-kyoko-np.net", "-notion.site"], // 検索ドメインのフィルター
         return_images: false, // 画像を返すかどうか
         return_related_questions: false, // 関連質問を返すかどうか
         search_recency_filter: "year", // 検索の新しさフィルター
@@ -735,6 +735,11 @@ export default function WisdomFountain() {
               }}
               transition={{ duration: 0.5 }}
             >
+              {!showResults && (
+                <p className="text-lg text-gray-700 mb-4 text-center">
+                  私が賢くなりたいのは...
+                </p>
+              )}
               <SearchInput
                 keyword={keyword}
                 setKeyword={setKeyword}
@@ -1089,7 +1094,7 @@ function SearchInput({
       <BorderBeam />
       <Input
         type="text"
-        placeholder="キーワードを入力"
+        placeholder="用語やトピックを入力"
         value={keyword}
         onChange={(e) => setKeyword(e.target.value)}
         onKeyDown={(e) => {
