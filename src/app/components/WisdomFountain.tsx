@@ -206,7 +206,7 @@ const cleanAndParseJSON = (section: string, text: string, keyword: string) => {
 
 async function getKeywordExplanation(keyword: string): Promise<string> {
   const systemPrompt =
-    "あなたは知識豊富なAIアシスタントです。与えられたキーワードについて簡潔な解説を提供してください。";
+    "与えられたキーワードについて簡潔な解説を提供してください。ハルシネーションを起こさないでください。";
   const userPrompt = `キーワード「${keyword}」について、100文字程度の簡潔な解説を日本語で生成してください。重要な部分は<keyword>タグで囲んでください。`;
 
   try {
@@ -266,7 +266,7 @@ export default function WisdomFountain() {
     setPhrasesError(null);
     try {
       const systemPrompt =
-        "あなたは知識豊富なAIアシスタントです。与えられたキーワードに関連する、興味深くて知的な会話のためのフレーズを生成してください。常に指定されたJSONフォーマットで回答してください。";
+        "与えられたキーワードに関連する、興味深くて知的な会話のためのフレーズを生成してください。常に指定されたJSONフォーマットで回答してください。ハルシネーションを起こさないでください。";
       const userPrompt = `
       キーワード「${keyword}」について、マニアやクライアントから「こいつわかってるな」「お、そんなことまで知ってるんだ」「君、賢いね」と思わせるような、短くて知り合いに話すようなセリフを5つ生成してください。各セリフには素人にもわかる詳しい200文字以上の背景説明を付けてください。
 
@@ -358,7 +358,7 @@ export default function WisdomFountain() {
     setTriviasError(null);
     try {
       const systemPrompt =
-        "あなたは知識豊富なAIアシスタントです。与えられたキーワードに関連する面白い雑学を生成してください。常に指定されたJSONフォーマットで回答してください。";
+        "与えられたキーワードに関連する面白い雑学を生成してください。常に指定されたJSONフォーマットで回答してください。ハルシネーションを起こさないでください。";
       const userPrompt = `
       キーワード「${keyword}」に関連する面白い雑学を5つ生成してください。各雑学は100文字程度で、興味深く、記憶に残るものにしてください。
       雑学の文章の中で面白いポイントや強調すべきポイントには、文中に<keyword>タグを付けてください。
@@ -433,7 +433,7 @@ export default function WisdomFountain() {
     setGlossaryError(null);
     try {
       const systemPrompt =
-        "あなたは知識豊富なAIアシスタントです。与えられたキーワードに関連する重要な用語とその定義を生成してください。常に指定されたJSONフォーマットで回答してください。";
+        "与えられたキーワードに関連する重要な用語とその定義を生成してください。常に指定されたJSONフォーマットで回答してください。ハルシネーションを起こさないでください。";
       const userPrompt = `
       キーワード「${keyword}」に関連する8つの重要な用語とその素人にもわかる詳しい100文字以上の説明を日本語で生成してください。
       以下の点に注意してください：
@@ -515,7 +515,7 @@ export default function WisdomFountain() {
     setKeyPersonsError(null);
     try {
       const systemPrompt =
-        "あなたは知識豊富なAIアシスタントです。与えられたキーワードに関連する重要な人物の情報を生成してください。常に指定されたJSONフォーマットで回答してください。";
+        "与えられたキーワードに関連する重要な人物の情報を生成してください。常に指定されたJSONフォーマットで回答してください。ハルシネーションを起こさないでください。";
       const userPrompt = `
         キーワード「${keyword}」に関連する重要な人物を5人選び、以下の情報を日本語で生成してください：
         1. その人物の名前
@@ -524,7 +524,7 @@ export default function WisdomFountain() {
         4. 公式ウェブサイトのURL（見つからない場合は空）
 
         以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
-        なるべく実在する人物を選んでください。
+        実在する人物を選んでください。ハルシネーションを起こさないでください。
 
         {
           "keyPersons": [
