@@ -47,56 +47,30 @@ declare global {
   }
 }
 
-// Perplexity APIの設定を追加
-const PERPLEXITY_API_KEY = process.env.NEXT_PUBLIC_PERPLEXITY_API_KEY ?? "";
-const PERPLEXITY_API_URL = "https://api.perplexity.ai/chat/completions";
-
 // Perplexity APIを使用するための関数を修正
 async function generateWithPerplexity(
   systemPrompt: string,
   userPrompt: string
 ) {
   try {
-    const response = await fetch(PERPLEXITY_API_URL, {
+    const response = await fetch("/api/generate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${PERPLEXITY_API_KEY}`,
       },
-      body: JSON.stringify({
-        model: "llama-3.1-sonar-small-128k-online", // 使用するモデル
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        max_tokens: 4096, // 生成するトークンの最大数
-        temperature: 0.2, // 生成の多様性（低いほど一貫性が高い）
-        top_p: 0.9, // 生成時に考慮する確率の閾値
-        return_citations: true, // 引用情報を返すかどうか
-        search_domain_filter: ["-kyoko-np.net", "-notion.site"], // 検索ドメインのフィルター
-        return_images: false, // 画像を返すかどうか
-        return_related_questions: false, // 関連質問を返すかどうか
-        search_recency_filter: "year", // 検索の新しさフィルター
-        top_k: 0, // 考慮する候補の数（0は制限なし）
-        stream: false, // ストリーミング生成を使用するかどうか
-        presence_penalty: 0, // 新しいトークンの生成ペナルティ
-        frequency_penalty: 1, // 頻出トークンの生成ペナルティ
-      }),
+      body: JSON.stringify({ systemPrompt, userPrompt }),
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
       throw new Error(
-        `API request failed: ${response.status} ${response.statusText}\n${errorText}`
+        `API request failed: ${response.status} ${response.statusText}`
       );
     }
 
     const data = await response.json();
-    console.log("Raw API response", data);
-
-    return data.choices[0].message.content;
+    return data.content;
   } catch (error) {
-    console.error("Perplexity API error:", error);
+    console.error("API error:", error);
     throw error;
   }
 }
@@ -254,7 +228,6 @@ export default function WisdomFountain() {
     console.log("Updated Key Persons:", keyPersons);
   }, [keyPersons]);
 
-  // anyの使用を避けるため、型を明示的に定義します
   interface PhraseItem {
     quote: string;
     background: string;
