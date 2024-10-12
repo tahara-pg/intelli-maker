@@ -706,7 +706,7 @@ export default function WisdomFountain() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-6 relative overflow-y-auto flex flex-col justify-center">
+    <div className="min-h-screen bg-gradient-custom py-6 relative overflow-y-auto flex flex-col justify-center">
       <div className="container mx-auto px-4 relative z-10">
         <AnimatePresence mode="wait">
           <motion.div

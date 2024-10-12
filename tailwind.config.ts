@@ -86,6 +86,14 @@ const config = {
         "accordion-up": "accordion-up 0.2s ease-out",
         "border-beam": "border-beam calc(var(--duration)*1s) infinite linear",
       },
+      backgroundImage: {
+        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+        "gradient-custom": `
+          radial-gradient(circle at 90% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 35%),
+          radial-gradient(circle at 20% 90%, rgba(168, 85, 247, 0.15) 0%, transparent 35%),
+          linear-gradient(to bottom right, #FAF5FF, #EBF8FF)
+        `,
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],
