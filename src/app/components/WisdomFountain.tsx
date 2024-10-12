@@ -749,7 +749,7 @@ export default function WisdomFountain() {
               transition={{ duration: 0.5 }}
             >
               {!showResults && (
-                <p className="text-lg text-gray-700 mb-4 text-center">
+                <p className="text-2xl font-bold text-gray-700 mb-4 text-center">
                   私が賢くなりたいのは...
                 </p>
               )}
