@@ -23,6 +23,7 @@ import {
   Trophy,
   RefreshCw,
   MessageSquare,
+  X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -1138,6 +1139,13 @@ function SearchInput({
   isLoading,
   inputRef,
 }: SearchInputProps) {
+  const handleClear = () => {
+    setKeyword("");
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
   return (
     <div className="relative w-full max-w-2xl mx-auto">
       <div className="absolute inset-0 rounded-full overflow-hidden z-20 pointer-events-none">
@@ -1160,9 +1168,17 @@ function SearchInput({
                 generateContent();
               }
             }}
-            className="w-full h-16 pr-4 border-2 border-purple-300 focus:border-purple-500 focus:ring-0 rounded-full py-3 px-6 text-xl tracking-wide bg-white text-purple-800 placeholder-purple-400 transition-colors duration-200"
+            className="w-full h-16 pr-24 border-2 border-purple-300 focus:border-purple-500 focus:ring-0 rounded-full py-3 px-6 text-xl tracking-wide bg-white text-purple-800 placeholder-purple-400 transition-colors duration-200"
           />
         </div>
+        {keyword && (
+          <button
+            onClick={handleClear}
+            className="absolute right-[140px] top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 z-10 bg-gray-100 hover:bg-gray-200 rounded-full p-1.5 transition-colors duration-200"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
         <Button
           onClick={generateContent}
           disabled={!keyword.trim() || isLoading}
