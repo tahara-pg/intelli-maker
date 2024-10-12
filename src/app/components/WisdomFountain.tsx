@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -105,6 +105,7 @@ interface SearchInputProps {
   setKeyword: (value: string) => void;
   generateContent: () => void;
   isLoading: boolean;
+  inputRef: React.RefObject<HTMLInputElement>;
 }
 
 // タグの色を定義する関数を更新
@@ -215,6 +216,17 @@ export default function WisdomFountain() {
   const [explanation, setExplanation] = useState("");
   const [explanationLoading, setExplanationLoading] = useState(false);
   const [explanationError, setExplanationError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const exampleKeywords = ["大谷翔平", "トヨタ自動車株式会社", "生成AI"];
+
+  const handleExampleClick = (example: string) => {
+    setKeyword(example);
+    // フォーカスを当てる
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
 
   useEffect(() => {
     console.log("Updated Phrases:", phrases);
@@ -738,18 +750,13 @@ export default function WisdomFountain() {
               />
             </motion.div>
 
-            <motion.div
+            <div
               className={`${
                 showResults ? "w-full md:w-2/3" : "w-full max-w-2xl"
               }`}
-              initial={false}
-              animate={{
-                width: showResults ? "100%" : "100%",
-              }}
-              transition={{ duration: 0.5 }}
             >
               {!showResults && (
-                <p className="text-2xl font-bold text-gray-700 mb-4 text-center">
+                <p className="text-2xl font-bold tracking-wide text-gray-700 mb-4 text-center">
                   私が賢くなりたいのは...
                 </p>
               )}
@@ -758,28 +765,27 @@ export default function WisdomFountain() {
                 setKeyword={setKeyword}
                 generateContent={generateContent}
                 isLoading={isLoading}
+                inputRef={inputRef}
               />
               {!showResults && (
                 <>
-                  <motion.p
-                    className="text-lg text-gray-600 mt-6 text-center"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                  >
-                    例）「AI」「大谷翔平」「自動運転」「2030年の日本」
-                  </motion.p>
-                  <motion.p
-                    className="text-base text-red-500 mt-3 text-center"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
-                  >
-                    ※作品名を入力するとネタバレを含む可能性があります。
-                  </motion.p>
+                  <div className="flex flex-wrap justify-center gap-2 mt-6">
+                    {exampleKeywords.map((example, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleExampleClick(example)}
+                        className="group rounded-full border border-gray-300 bg-neutral-100 px-4 py-1 text-base tracking-wide text-gray-700 hover:cursor-pointer hover:bg-neutral-200"
+                      >
+                        {example}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-base text-red-500 mt-3 text-center tracking-wide">
+                    ※映画などの作品名で調べるとネタバレを含む可能性があります。
+                  </p>
                 </>
               )}
-            </motion.div>
+            </div>
           </motion.div>
         </AnimatePresence>
 
@@ -1130,37 +1136,45 @@ function SearchInput({
   setKeyword,
   generateContent,
   isLoading,
+  inputRef,
 }: SearchInputProps) {
   return (
-    <div className="relative w-full rounded-full">
-      <BorderBeam />
-      <Input
-        type="text"
-        placeholder="用語やトピックを入力"
-        value={keyword}
-        onChange={(e) => setKeyword(e.target.value)}
-        onKeyDown={(e) => {
-          if (
-            e.key === "Enter" &&
-            !e.nativeEvent.isComposing &&
-            keyword.trim()
-          ) {
-            generateContent();
-          }
-        }}
-        className="w-full h-16 pr-16 border-2 border-purple-300 focus:border-purple-500 rounded-full py-3 px-6 text-xl bg-white text-purple-800 placeholder-purple-400"
-      />
-      <Button
-        onClick={generateContent}
-        disabled={!keyword.trim() || isLoading}
-        className="absolute right-6 top-1/2 transform -translate-y-1/2 rounded-full bg-purple-500 hover:bg-purple-600 text-white p-2"
-      >
-        {isLoading ? (
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-        ) : (
-          <Sparkles className="w-6 h-6" />
-        )}
-      </Button>
+    <div className="relative w-full max-w-2xl mx-auto">
+      <div className="absolute inset-0 rounded-full overflow-hidden z-20 pointer-events-none">
+        <BorderBeam />
+      </div>
+      <div className="flex relative z-10">
+        <div className="relative flex-grow">
+          <Input
+            ref={inputRef}
+            type="text"
+            placeholder="用語やトピックを入力"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            onKeyDown={(e) => {
+              if (
+                e.key === "Enter" &&
+                !e.nativeEvent.isComposing &&
+                keyword.trim()
+              ) {
+                generateContent();
+              }
+            }}
+            className="w-full h-16 pr-4 border-2 border-purple-300 focus:border-purple-500 focus:ring-0 rounded-full py-3 px-6 text-xl tracking-wide bg-white text-purple-800 placeholder-purple-400 transition-colors duration-200"
+          />
+        </div>
+        <Button
+          onClick={generateContent}
+          disabled={!keyword.trim() || isLoading}
+          className="absolute right-[2px] top-[2px] h-[60px] px-8 rounded-r-full bg-purple-500 text-white text-xl font-bold tracking-wide hover:bg-purple-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isLoading ? (
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+          ) : (
+            "調べる"
+          )}
+        </Button>
+      </div>
     </div>
   );
 }
