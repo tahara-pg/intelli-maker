@@ -1182,7 +1182,7 @@ function SearchInput({
         <Button
           onClick={generateContent}
           disabled={!keyword.trim() || isLoading}
-          className="absolute right-[2px] top-[2px] h-[60px] px-8 rounded-r-full bg-purple-500 text-white text-xl font-bold tracking-wide hover:bg-purple-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="absolute right-[2px] top-[2px] h-[60px] w-[120px] rounded-r-full bg-purple-500 text-white text-xl font-bold tracking-wide hover:bg-purple-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
         >
           {isLoading ? (
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
