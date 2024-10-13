@@ -22,23 +22,24 @@ export async function POST(request: Request) {
         Authorization: `Bearer ${PERPLEXITY_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "llama-3.1-sonar-small-128k-online",
+        model: "llama-3.1-sonar-huge-128k-online", // 使用するモデルを指定
         messages: [
+          // システムプロンプトとユーザープロンプトを設定
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        max_tokens: 4096,
-        temperature: 0.2,
-        top_p: 0.9,
-        return_citations: true,
-        search_domain_filter: ["-kyoko-np.net", "-notion.site"],
-        return_images: false,
-        return_related_questions: false,
-        search_recency_filter: "year",
-        top_k: 0,
-        stream: false,
-        presence_penalty: 0,
-        frequency_penalty: 1,
+        max_tokens: 4096, // 生成するトークンの最大数
+        temperature: 0.2, // 生成の多様性を制御（低いほど決定的）
+        top_p: 0.9, // 上位確率の閾値
+        return_citations: false, // 引用情報を返すかどうか
+        search_domain_filter: ["-kyoko-np.net", "-notion.site"], // 検索から除外するドメイン
+        return_images: false, // 画像を返さない
+        return_related_questions: false, // 関連質問を返さない
+        search_recency_filter: "year", // 検索の新しさフィルター
+        top_k: 0, // 上位k個の選択肢を考慮（0は無効）
+        stream: false, // ストリーミングを無効化
+        presence_penalty: 0, // 存在ペナルティ（0は無効）
+        frequency_penalty: 1, // 頻度ペナルティ
       }),
     });
 

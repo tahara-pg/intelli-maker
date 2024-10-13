@@ -282,8 +282,7 @@ export default function WisdomFountain() {
             "tags": ["問題提起"]
           }
         ]
-      }
-      `;
+      }`;
 
       const phrasesText = await generateWithPerplexity(
         systemPrompt,
@@ -360,8 +359,7 @@ export default function WisdomFountain() {
             "content": "雑学2の内容（<keyword>タグ付き）"
           }
         ]
-      }
-      `;
+      }`;
 
       const triviasText = await generateWithPerplexity(
         systemPrompt,
@@ -444,8 +442,7 @@ export default function WisdomFountain() {
             "definition": "定義3"
           }
         ]
-      }
-      `;
+      }`;
       const glossaryText = await generateWithPerplexity(
         systemPrompt,
         userPrompt
@@ -529,8 +526,7 @@ export default function WisdomFountain() {
               "website": "https://example2.com"
             }
           ]
-        }
-      `;
+        }`;
 
       const keyPersonText = await generateWithPerplexity(
         systemPrompt,
