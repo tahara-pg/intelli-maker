@@ -95,9 +95,6 @@ interface GlossaryItem {
 interface KeyPerson {
   name: string;
   description: string;
-  x: string;
-  linkedin: string;
-  website: string;
 }
 
 // SearchInput コンポーネントの型定義を追加
@@ -503,8 +500,6 @@ export default function WisdomFountain() {
         キーワード「${keyword}」に関連する重要な人物を5人選び、以下の情報を日本語で生成してください：
         1. その人物の名前
         2. 素人にもわかる詳しい100文字以上の説明（その人物の経歴や業績に加え、キーワード「${keyword}」との関連性も含めてください）
-        3. X(旧Twitter)とLinkedInのURL（見つからない場合は空）
-        4. 公式ウェブサイトのURL（見つからない場合は空）
 
         以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
         実在する人物を選んでください。ハルシネーションを起こさないでください。
@@ -513,17 +508,11 @@ export default function WisdomFountain() {
           "keyPersons": [
             {
               "name": "人物名1",
-              "description": "人物の説明1（キーワードとの関連性を含む）",
-              "x": "https://x.com/example1",
-              "linkedin": "https://www.linkedin.com/in/example1",
-              "website": "https://example1.com"
+              "description": "人物の説明1（キーワードとの関連性を含む）"
             },
             {
               "name": "人物名2",
-              "description": "人物の説明2（キーワードとの関連性を含む）",
-              "x": "https://x.com/example2",
-              "linkedin": "https://www.linkedin.com/in/example2",
-              "website": "https://example2.com"
+              "description": "人物の説明2（キーワードとの関連性を含む）"
             }
           ]
         }`;
@@ -1008,56 +997,9 @@ export default function WisdomFountain() {
                             <h3 className="text-xl font-bold text-purple-800 mb-2">
                               {person.name}
                             </h3>
-                            <p className="text-gray-700 mb-4">
+                            <p className="text-gray-700">
                               {person.description}
                             </p>
-                            <div className="flex space-x-4">
-                              {person.x && (
-                                <a
-                                  href={person.x}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-gray-600 hover:text-gray-800"
-                                  onClick={() =>
-                                    handleExternalLinkClick("x", person.x)
-                                  }
-                                >
-                                  <Twitter className="w-5 h-5" />
-                                </a>
-                              )}
-                              {person.linkedin && (
-                                <a
-                                  href={person.linkedin}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-gray-600 hover:text-gray-800"
-                                  onClick={() =>
-                                    handleExternalLinkClick(
-                                      "linkedin",
-                                      person.linkedin
-                                    )
-                                  }
-                                >
-                                  <Linkedin className="w-5 h-5" />
-                                </a>
-                              )}
-                              {person.website && (
-                                <a
-                                  href={person.website}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-gray-600 hover:text-gray-800"
-                                  onClick={() =>
-                                    handleExternalLinkClick(
-                                      "website",
-                                      person.website
-                                    )
-                                  }
-                                >
-                                  <Globe className="w-5 h-5" />
-                                </a>
-                              )}
-                            </div>
                           </div>
                         </CardContent>
                       </Card>
@@ -1252,12 +1194,8 @@ function KeyPersonsSkeletonLoader() {
           <CardContent className="p-6">
             <div className="flex flex-col">
               <Skeleton className="h-6 w-32 mb-2" />
-              <Skeleton className="h-4 w-64 mb-4" />
-              <div className="flex space-x-4">
-                <Skeleton className="w-5 h-5" />
-                <Skeleton className="w-5 h-5" />
-                <Skeleton className="w-5 h-5" />
-              </div>
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-5/6" />
             </div>
           </CardContent>
         </Card>
