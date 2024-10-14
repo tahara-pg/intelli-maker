@@ -37,6 +37,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { BorderBeam } from "@/components/ui/border-beam";
+import { useSpring, animated } from "react-spring";
+import styles from "@/app/styles/ProgressBar.module.css";
 
 // Window インターフェースを拡張する
 declare global {
@@ -221,6 +223,10 @@ const WisdomFountain: React.FC<WisdomFountainProps> = ({ onSubmit }) => {
   const [explanationError, setExplanationError] = useState<string | null>(null);
   const [loadingText, setLoadingText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const [progress, setProgress] = useState(0);
+  const [slowProgressInterval, setSlowProgressInterval] =
+    useState<NodeJS.Timeout | null>(null);
+  const [completedTasks, setCompletedTasks] = useState(0);
 
   const exampleKeywords = ["大谷翔平", "トヨタ自動車株式会社", "生成AI"];
 
@@ -689,12 +695,50 @@ const WisdomFountain: React.FC<WisdomFountainProps> = ({ onSubmit }) => {
     }
   };
 
+  // アニメーション用のスプリングを定義
+  const props = useSpring({
+    width: `${progress}%`,
+    from: { width: "0%" },
+  });
+
+  // プログレスバーをゆっくり進める関数
+  const startSlowProgress = (start: number, end: number) => {
+    if (slowProgressInterval) clearInterval(slowProgressInterval);
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= end) {
+          clearInterval(interval);
+          return end;
+        }
+        return prev + 0.1;
+      });
+    }, 100);
+    setSlowProgressInterval(interval);
+  };
+
+  const updateProgress = () => {
+    setCompletedTasks((prev) => {
+      const newCompleted = prev + 1;
+      const newProgress = (newCompleted / 5) * 100;
+      setProgress(newProgress);
+      if (newCompleted < 5) {
+        startSlowProgress(newProgress, ((newCompleted + 1) / 5) * 100 - 1);
+      } else {
+        startSlowProgress(newProgress, 100);
+      }
+      return newCompleted;
+    });
+  };
+
   const generateContent = async () => {
     if (keyword.trim() === "") return;
     setShowResults(true);
     setIsLoading(true);
     setIsThinking(true);
     clearErrors();
+    setProgress(0);
+    setCompletedTasks(0);
+    startSlowProgress(0, 19);
 
     sendGAEvent("search", {
       event_category: "Search",
@@ -717,19 +761,36 @@ const WisdomFountain: React.FC<WisdomFountainProps> = ({ onSubmit }) => {
 
     try {
       await Promise.all([
-        generateExplanation().catch((error) =>
-          displaySectionError("用語の解説", error)
-        ),
-        generatePhrases().catch((error) =>
-          displaySectionError("セリフ", error)
-        ),
-        generateTrivias().catch((error) => displaySectionError("雑学", error)),
-        generateGlossary().catch((error) =>
-          displaySectionError("用語集", error)
-        ),
-        generateKeyPersons().catch((error) =>
-          displaySectionError("キーパーソン", error)
-        ),
+        generateExplanation()
+          .then(updateProgress)
+          .catch((error) => {
+            displaySectionError("用語の解説", error);
+            updateProgress();
+          }),
+        generatePhrases()
+          .then(updateProgress)
+          .catch((error) => {
+            displaySectionError("セリフ", error);
+            updateProgress();
+          }),
+        generateTrivias()
+          .then(updateProgress)
+          .catch((error) => {
+            displaySectionError("雑学", error);
+            updateProgress();
+          }),
+        generateGlossary()
+          .then(updateProgress)
+          .catch((error) => {
+            displaySectionError("用語集", error);
+            updateProgress();
+          }),
+        generateKeyPersons()
+          .then(updateProgress)
+          .catch((error) => {
+            displaySectionError("キーパーソン", error);
+            updateProgress();
+          }),
       ]);
     } catch (error) {
       displaySectionError("general", error);
@@ -1112,10 +1173,16 @@ const WisdomFountain: React.FC<WisdomFountainProps> = ({ onSubmit }) => {
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-slate-800 bg-opacity-30 flex items-center justify-center z-50"
           >
-            <div className="bg-white rounded-lg p-8 max-w-2xl w-full">
+            <div className="bg-white rounded-lg px-8 py-14 max-w-2xl w-full">
               <h3 className="text-3xl font-bold text-purple-800 mb-8 text-center">
                 AIが考えています...
               </h3>
+              <div className="w-full h-4 bg-gray-200 rounded-full mb-12 overflow-hidden">
+                <animated.div
+                  style={props}
+                  className={`h-full bg-purple-600 rounded-full ${styles.stripedBar}`}
+                />
+              </div>
               <div className="flex justify-center space-x-4 mb-8">
                 {[0, 1, 2].map((i) => (
                   <motion.div
