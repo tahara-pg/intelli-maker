@@ -24,6 +24,7 @@ import {
   RefreshCw,
   MessageSquare,
   X,
+  Search,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -191,7 +192,11 @@ async function getKeywordExplanation(keyword: string): Promise<string> {
   }
 }
 
-export default function WisdomFountain() {
+interface WisdomFountainProps {
+  onSubmit: (keyword: string) => void;
+}
+
+const WisdomFountain: React.FC<WisdomFountainProps> = ({ onSubmit }) => {
   const [keyword, setKeyword] = useState("");
   const [phrases, setPhrases] = useState<Phrase[]>([]);
   const [trivias, setTrivias] = useState<Trivia[]>([]);
@@ -214,6 +219,7 @@ export default function WisdomFountain() {
   const [explanation, setExplanation] = useState("");
   const [explanationLoading, setExplanationLoading] = useState(false);
   const [explanationError, setExplanationError] = useState<string | null>(null);
+  const [loadingText, setLoadingText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const exampleKeywords = ["大谷翔平", "トヨタ自動車株式会社", "生成AI"];
@@ -237,6 +243,84 @@ export default function WisdomFountain() {
   useEffect(() => {
     console.log("Updated Key Persons:", keyPersons);
   }, [keyPersons]);
+
+  useEffect(() => {
+    if (isLoading) {
+      const keywords = [
+        "魅力",
+        "競合",
+        "仲間",
+        "関連用語",
+        "歴史",
+        "最新トレンド",
+        "影響力",
+        "課題",
+        "将来性",
+        "技術",
+        "文化的意義",
+        "経済効果",
+        "社会的影響",
+        "環境への影響",
+        "倫理的側面",
+        "国際関係",
+        "法的問題",
+        "教育的価値",
+        "心理的影響",
+        "科学的根拠",
+      ];
+      let isTyping = true;
+      let text = "";
+      let currentKeyword = "";
+
+      const typeText = () => {
+        if (isTyping) {
+          if (text.length < keyword.length) {
+            text += keyword[text.length];
+            setLoadingText(text);
+            setTimeout(typeText, 100);
+          } else if (text.length === keyword.length) {
+            text += "　";
+            currentKeyword =
+              keywords[Math.floor(Math.random() * keywords.length)];
+            setLoadingText(text);
+            setTimeout(typeText, 250);
+          } else {
+            if (text.length < keyword.length + currentKeyword.length + 1) {
+              text += currentKeyword[text.length - keyword.length - 1];
+              setLoadingText(text);
+              setTimeout(typeText, 100);
+            } else {
+              isTyping = false;
+              setTimeout(eraseText, 2000);
+            }
+          }
+        }
+      };
+
+      const eraseText = () => {
+        if (!isTyping) {
+          if (text.length > keyword.length + 1) {
+            text = text.slice(0, -1);
+            setLoadingText(text);
+            setTimeout(eraseText, 50);
+          } else {
+            isTyping = true;
+            currentKeyword =
+              keywords[Math.floor(Math.random() * keywords.length)];
+            setTimeout(typeText, 500);
+          }
+        }
+      };
+
+      typeText();
+
+      return () => {
+        isTyping = false;
+      };
+    } else {
+      setLoadingText("");
+    }
+  }, [isLoading, keyword]);
 
   interface PhraseItem {
     quote: string;
@@ -1028,31 +1112,33 @@ export default function WisdomFountain() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-slate-800 bg-opacity-30 flex items-center justify-center z-50"
           >
-            <div className="bg-white rounded-lg p-8 max-w-md w-full">
-              <h3 className="text-2xl font-bold text-purple-800 mb-8">
+            <div className="bg-white rounded-lg p-8 max-w-2xl w-full">
+              <h3 className="text-3xl font-bold text-purple-800 mb-8 text-center">
                 AIが考えています...
               </h3>
-              <div className="flex justify-center space-x-2">
+              <div className="flex justify-center space-x-4 mb-8">
                 {[0, 1, 2].map((i) => (
                   <motion.div
                     key={i}
-                    className="w-4 h-4 bg-purple-600 rounded-full"
+                    className="w-6 h-6 bg-purple-600 rounded-full"
                     animate={{
-                      y: [0, -20, 0],
+                      y: [0, -30, 0],
                     }}
                     transition={{
-                      duration: 0.8,
+                      duration: 1,
                       repeat: Infinity,
                       delay: i * 0.2,
                     }}
                   />
                 ))}
               </div>
-              <p className="text-slate-600 mt-6 text-center">
-                膨大なデータを分析し、
-                <br />
-                最適な回答を生成しています。
-              </p>
+              <div className="mt-6 p-4 bg-gray-100 rounded-lg flex items-center">
+                <Search className="text-purple-500 w-8 h-8 mr-4" />
+                <p className="text-slate-600 flex-grow text-2xl">
+                  {loadingText}
+                  <span className="cursor">|</span>
+                </p>
+              </div>
             </div>
           </motion.div>
         )}
@@ -1067,7 +1153,7 @@ export default function WisdomFountain() {
       <AboutModal isOpen={isAboutOpen} setIsOpen={handleAboutOpen} />
     </div>
   );
-}
+};
 
 // SearchInput コンポーネントを更新
 function SearchInput({
@@ -1091,6 +1177,9 @@ function SearchInput({
       </div>
       <div className="flex relative z-10">
         <div className="relative flex-grow">
+          <div className="absolute left-[15px] top-1/2 transform -translate-y-1/2">
+            <Search className="h-5 w-5 text-purple-500" />
+          </div>
           <Input
             ref={inputRef}
             type="text"
@@ -1106,7 +1195,7 @@ function SearchInput({
                 generateContent();
               }
             }}
-            className="w-full h-16 pr-24 border-2 border-purple-300 focus:border-purple-500 focus:ring-0 rounded-full py-3 px-6 text-xl tracking-wide bg-white text-purple-800 placeholder-purple-400 transition-colors duration-200"
+            className="w-full h-16 pr-24 border-2 border-purple-300 focus:border-purple-500 focus:ring-0 rounded-full py-3 px-11 text-xl tracking-wide bg-white text-purple-800 placeholder-purple-400 transition-colors duration-200"
           />
         </div>
         {keyword && (
@@ -1355,3 +1444,5 @@ function ExplanationSkeletonLoader() {
     </div>
   );
 }
+
+export default WisdomFountain;
