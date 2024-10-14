@@ -39,6 +39,7 @@ import {
 import { BorderBeam } from "@/components/ui/border-beam";
 import { useSpring, animated } from "react-spring";
 import styles from "@/app/styles/ProgressBar.module.css";
+import cursorStyles from "@/app/styles/Cursor.module.css";
 
 // Window インターフェースを拡張する
 declare global {
@@ -1203,7 +1204,7 @@ const WisdomFountain: React.FC<WisdomFountainProps> = ({ onSubmit }) => {
                 <Search className="text-purple-500 w-8 h-8 mr-4" />
                 <p className="text-slate-600 flex-grow text-2xl">
                   {loadingText}
-                  <span className="cursor">|</span>
+                  <span className={cursorStyles.cursor}>|</span>
                 </p>
               </div>
             </div>
