@@ -14,9 +14,6 @@ import {
 } from "@/components/ui/table";
 import {
   Star,
-  Twitter,
-  Linkedin,
-  Globe,
   Sparkles,
   BookOpen,
   User,
@@ -195,11 +192,7 @@ async function getKeywordExplanation(keyword: string): Promise<string> {
   }
 }
 
-interface WisdomFountainProps {
-  onSubmit: (keyword: string) => void;
-}
-
-const WisdomFountain: React.FC<WisdomFountainProps> = ({ onSubmit }) => {
+const WisdomFountain = () => {
   const [keyword, setKeyword] = useState("");
   const [phrases, setPhrases] = useState<Phrase[]>([]);
   const [trivias, setTrivias] = useState<Trivia[]>([]);
@@ -729,6 +722,7 @@ const WisdomFountain: React.FC<WisdomFountainProps> = ({ onSubmit }) => {
       }
       return newCompleted;
     });
+    console.log(completedTasks);
   };
 
   const generateContent = async () => {
@@ -838,15 +832,6 @@ const WisdomFountain: React.FC<WisdomFountainProps> = ({ onSubmit }) => {
         action: "open",
       });
     }
-  };
-
-  // 外部リンクのクリックをトラッキング
-  const handleExternalLinkClick = (type: string, url: string) => {
-    sendGAEvent("external_link_click", {
-      type,
-      url,
-      keyword: keyword, // 現在のキーワードを含める
-    });
   };
 
   return (
