@@ -1160,15 +1160,9 @@ const WisdomFountain = () => {
             className="fixed inset-0 bg-slate-800 bg-opacity-30 flex items-center justify-center z-50"
           >
             <div className="bg-white rounded-lg px-8 py-14 max-w-2xl w-full">
-              <h3 className="text-3xl font-bold text-purple-800 mb-8 text-center">
+              <h3 className="text-3xl font-bold text-purple-800 mb-14 text-center">
                 AIが考えています...
               </h3>
-              <div className="w-full h-4 bg-gray-200 rounded-full mb-12 overflow-hidden">
-                <animated.div
-                  style={props}
-                  className={`h-full bg-purple-600 rounded-full ${styles.stripedBar}`}
-                />
-              </div>
               <div className="flex justify-center space-x-4 mb-8">
                 {[0, 1, 2].map((i) => (
                   <motion.div
@@ -1185,12 +1179,18 @@ const WisdomFountain = () => {
                   />
                 ))}
               </div>
-              <div className="mt-6 p-4 bg-gray-100 rounded-lg flex items-center">
+              <div className="mt-6 p-4 bg-gray-100 rounded-lg flex items-center mb-8">
                 <Search className="text-purple-500 w-8 h-8 mr-4" />
                 <p className="text-slate-600 flex-grow text-2xl">
                   {loadingText}
                   <span className={cursorStyles.cursor}>|</span>
                 </p>
+              </div>
+              <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
+                <animated.div
+                  style={props}
+                  className={`h-full bg-purple-600 rounded-full ${styles.stripedBar}`}
+                />
               </div>
             </div>
           </motion.div>
