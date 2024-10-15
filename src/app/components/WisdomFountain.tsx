@@ -22,6 +22,7 @@ import {
   MessageSquare,
   X,
   Search,
+  Check,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -221,6 +222,7 @@ const WisdomFountain = () => {
   const [slowProgressInterval, setSlowProgressInterval] =
     useState<NodeJS.Timeout | null>(null);
   const [completedTasks, setCompletedTasks] = useState(0);
+  const [showCheckmark, setShowCheckmark] = useState(false);
 
   const exampleKeywords = ["大谷翔平", "トヨタ自動車株式会社", "生成AI"];
 
@@ -791,8 +793,14 @@ const WisdomFountain = () => {
     } catch (error) {
       displaySectionError("general", error);
     } finally {
-      setIsLoading(false);
-      setIsThinking(false);
+      // すべてのタスクが完了したら、プログレスバーを100%にし、チェックマークを表示
+      setProgress(100);
+      setShowCheckmark(true);
+      setTimeout(() => {
+        setIsLoading(false);
+        setIsThinking(false);
+        setShowCheckmark(false);
+      }, 2000); // 2秒後にローディングモーダルを閉じる
     }
   };
 
@@ -1162,37 +1170,53 @@ const WisdomFountain = () => {
           >
             <div className="bg-white rounded-lg px-8 py-14 max-w-2xl w-full">
               <h3 className="text-3xl font-bold text-purple-800 mb-14 text-center">
-                AIが考えています...
+                {showCheckmark ? "完了しました！" : "AIが考えています..."}
               </h3>
-              <div className="flex justify-center space-x-4 mb-8">
-                {[0, 1, 2].map((i) => (
-                  <motion.div
-                    key={i}
-                    className="w-6 h-6 bg-purple-600 rounded-full"
-                    animate={{
-                      y: [0, -30, 0],
-                    }}
-                    transition={{
-                      duration: 1,
-                      repeat: Infinity,
-                      delay: i * 0.2,
-                    }}
-                  />
-                ))}
-              </div>
-              <div className="mt-6 p-4 bg-gray-100 rounded-lg flex items-center mb-8">
-                <Search className="text-purple-500 w-8 h-8 mr-4" />
-                <p className="text-slate-600 flex-grow text-2xl">
-                  {loadingText}
-                  <span className={cursorStyles.cursor}>|</span>
-                </p>
-              </div>
+              {!showCheckmark && (
+                <div className="flex justify-center space-x-4 mb-8">
+                  {[0, 1, 2].map((i) => (
+                    <motion.div
+                      key={i}
+                      className="w-6 h-6 bg-purple-600 rounded-full"
+                      animate={{
+                        y: [0, -30, 0],
+                      }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        delay: i * 0.2,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+              {!showCheckmark && (
+                <div className="mt-6 p-4 bg-gray-100 rounded-lg flex items-center mb-8">
+                  <Search className="text-purple-500 w-8 h-8 mr-4" />
+                  <p className="text-slate-600 flex-grow text-2xl">
+                    {loadingText}
+                    <span className={cursorStyles.cursor}>|</span>
+                  </p>
+                </div>
+              )}
               <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
                 <animated.div
                   style={props}
                   className={`h-full bg-purple-600 rounded-full ${styles.stripedBar}`}
                 />
               </div>
+              {showCheckmark && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                  className="flex justify-center mt-8"
+                >
+                  <div className="bg-green-500 rounded-full p-2">
+                    <Check className="w-8 h-8 text-white" />
+                  </div>
+                </motion.div>
+              )}
             </div>
           </motion.div>
         )}
