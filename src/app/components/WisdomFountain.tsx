@@ -733,6 +733,7 @@ const WisdomFountain = () => {
     clearErrors();
     setProgress(0);
     setCompletedTasks(0);
+    setLoadingText("");
     startSlowProgress(0, 19);
 
     sendGAEvent("search", {
