@@ -55,6 +55,9 @@ async function generateWithPerplexity(
   systemPrompt: string,
   userPrompt: string
 ) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 100000);
+
   try {
     const response = await fetch("/api/generate", {
       method: "POST",
@@ -62,7 +65,10 @@ async function generateWithPerplexity(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ systemPrompt, userPrompt }),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(
@@ -71,9 +77,14 @@ async function generateWithPerplexity(
     }
 
     const data = await response.json();
+    if (data.error) {
+      throw new Error(data.error);
+    }
     return data.content;
   } catch (error) {
-    console.error("API error:", error);
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error("リクエストがタイムアウトしました");
+    }
     throw error;
   }
 }
