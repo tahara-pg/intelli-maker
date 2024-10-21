@@ -26,6 +26,20 @@ export const metadata: Metadata = {
     icon: "/favicon.ico",
     apple: "/apple-touch-icon.png",
   },
+  openGraph: {
+    title: "インテリメーカー 〜賢いは作れる〜",
+    description: "知識を深め、賢くなるためのアプリ",
+    type: "website",
+    url: "https://intelli-maker.vercel.app/",
+    images: [
+      {
+        url: "/ogp.png",
+        width: 1200,
+        height: 630,
+        alt: "インテリメーカー 〜賢いは作れる〜",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -37,8 +51,6 @@ export default function RootLayout({
     <html lang="ja">
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         {/* Google Analytics */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
