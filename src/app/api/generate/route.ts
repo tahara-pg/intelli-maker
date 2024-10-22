@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY ?? "";
 const PERPLEXITY_API_URL = "https://api.perplexity.ai/chat/completions";
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 export async function POST(request: Request) {
   const { systemPrompt, userPrompt } = await request.json();
