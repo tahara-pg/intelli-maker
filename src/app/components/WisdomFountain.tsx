@@ -1569,27 +1569,27 @@ function HowToUseModal({
 }) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[425px] bg-white">
+      <DialogContent className="sm:max-w-[600px] bg-white">
         <DialogHeader>
           <DialogTitle>インテリメーカーの使い方</DialogTitle>
         </DialogHeader>
         <div className="mt-4 space-y-4">
-          <p>
-            1. 用語・トピックを入力:
-            興味のあるトピックや知りたい分野の用語・トピックを入力します。
-          </p>
-          <p>
-            2. 生成ボタンをクリック:
-            AIが入力された用語・トピックに基づいて、関連する情報を生成します。
-          </p>
-          <p>
-            3. 結果を確認:
-            生成された「注目の話題」、「面白い雑学」、「関連用語」、「キーパーソン」の情報を確認します。
-          </p>
-          <p>
-            4. 情報を活用:
-            生成された情報を会話や学習に活用し、知識の幅を広げましょう。
-          </p>
+          <div className="space-y-2 pb-4">
+            <p className="font-bold text-purple-800">1. 用語・トピックを入力</p>
+            <p>
+              <b>気になるキーワード</b>を入力して
+              <br />
+              <b>「調べる」</b>を押してください。
+            </p>
+          </div>
+          <div className="space-y-2 pb-4">
+            <p className="font-bold text-purple-800">2. 結果を確認</p>
+            <p>
+              <b>賢く聞こえるセリフ</b>が生成されます。
+              <br />
+              <b>セリフのもとになった各種情報</b>も確認できます。
+            </p>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
@@ -1605,23 +1605,54 @@ function AboutModal({
 }) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>インテリメーカーについて</DialogTitle>
         </DialogHeader>
         <div className="mt-4 space-y-4">
-          <p>
-            インテリメーカーは、AIの力を活用して、ユーザーの知識の幅を広げ、会話力を向上させることを目的としたツールです。
-          </p>
-          <p>
-            私たちの目標は、ユーザーが様々なトピックについて深い洞察を得られるようサポートし、知的好奇心を刺激することです。
-          </p>
-          <p>
-            このツールを通じて、ユーザーがより豊かな会話や議論を楽しみ、新しい視点を得られることを願っています。
-          </p>
-          <p>
-            常に改善を重ね、ユーザーの皆様により良い体験を提供できるよう努めてまいります。
-          </p>
+          <div className="space-y-2 pb-4">
+            <p className="font-bold text-purple-800">概要</p>
+            <p>
+              <b>今すぐ”デキる人”の評価が欲しいあなたへ。</b>
+              <br />
+              お題に合わせて賢さ溢れるセリフをAIが提案。
+              <br />
+              あなたはセリフを読み上げるだけで注目される存在になれます。
+            </p>
+          </div>
+          <div className="space-y-2 pb-4">
+            <p className="font-bold text-purple-800">開発背景</p>
+            <p>
+              <b>周りの人から賢く見られると、得をします。</b>
+            </p>
+            <p>
+              上司や先輩とのやり取りにおいて、
+              <br />
+              クライアントとの商談において、
+              <br />
+              あるいは恋人との会話において。
+            </p>
+            <p>
+              インターネット上に情報はたくさんありますが、
+              <br />
+              いくら知識を蓄えたところで
+              <b>アウトプットしなければ価値を発揮しません。</b>
+            </p>
+            <p>
+              インテリメーカーでは、
+              <br />
+              アウトプットしやすいようにセリフをご用意します。
+              <br />
+              <b>セリフを口にすれば、きっと周りからの印象が変わるはず。</b>
+            </p>
+            <p>
+              <b>"賢い"は、作れる。</b>
+            </p>
+          </div>
+          <div className="space-y-2 pb-4">
+            <p className="font-bold text-purple-800">使用AI</p>
+            <p>Perplexity, Gemini</p>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
