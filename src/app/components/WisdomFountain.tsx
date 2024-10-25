@@ -59,7 +59,7 @@ async function generateWithPerplexity(
   const timeoutId = setTimeout(() => controller.abort(), 100000);
 
   try {
-    const response = await fetch("/api/generate", {
+    const response = await fetch("/api/perplexity", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -90,8 +90,8 @@ async function generateWithPerplexity(
 }
 
 // 型定義を更新
-interface Phrase {
-  quote: string;
+interface Topic {
+  information: string;
   background: string;
   tags: string[];
 }
@@ -190,34 +190,49 @@ const cleanAndParseJSON = (section: string, text: string, keyword: string) => {
   }
 };
 
-async function getKeywordExplanation(keyword: string): Promise<string> {
-  const systemPrompt =
-    "与えられたキーワードについて簡潔な解説を提供してください。ハルシネーションを起こさないでください。";
-  const userPrompt = `キーワード「${keyword}」について、100文字程度の簡潔な解説を日本語で生成してください。重要な部分は<keyword>タグで囲んでください。`;
-  ``;
+// 新しいインターフェースを追加
+interface ImpressionPhrase {
+  content: string;
+  highlightedWords: string[];
+}
+
+// 新しい generateWithGemini 関数を追加
+async function generateWithGemini(prompt: string): Promise<string> {
   try {
-    const explanation = await generateWithPerplexity(systemPrompt, userPrompt);
-    return explanation;
+    const response = await fetch("/api/gemini", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ prompt }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to generate content");
+    }
+
+    const data = await response.json();
+    return data.content;
   } catch (error) {
-    console.error("用語の解説生成中にエラーが発生しました:", error);
-    return `「${keyword}」の解説を生成できませんでした。`;
+    console.error("Error generating content:", error);
+    throw error;
   }
 }
 
 const WisdomFountain = () => {
-  const [keyword, setKeyword] = useState("");
-  const [phrases, setPhrases] = useState<Phrase[]>([]);
+  const [main_topic, setMain_topic] = useState("");
+  const [topics, setTopics] = useState<Topic[]>([]);
   const [trivias, setTrivias] = useState<Trivia[]>([]);
   const [glossary, setGlossary] = useState<GlossaryItem[]>([]);
   const [keyPersons, setKeyPersons] = useState<KeyPerson[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [phrasesLoading, setPhrasesLoading] = useState(false);
+  const [topicsLoading, setTopicsLoading] = useState(false);
   const [triviasLoading, setTriviasLoading] = useState(false);
   const [glossaryLoading, setGlossaryLoading] = useState(false);
   const [keyPersonsLoading, setKeyPersonsLoading] = useState(false);
-  const [phrasesError, setPhrasesError] = useState<string | null>(null);
+  const [topicsError, setTopicsError] = useState<string | null>(null);
   const [triviasError, setTriviasError] = useState<string | null>(null);
   const [glossaryError, setGlossaryError] = useState<string | null>(null);
   const [keyPersonsError, setKeyPersonsError] = useState<string | null>(null);
@@ -234,11 +249,19 @@ const WisdomFountain = () => {
     useState<NodeJS.Timeout | null>(null);
   const [completedTasks, setCompletedTasks] = useState(0);
   const [showCheckmark, setShowCheckmark] = useState(false);
+  const [impressionPhrases, setImpressionPhrases] = useState<
+    ImpressionPhrase[]
+  >([]);
+  const [impressionPhrasesLoading, setImpressionPhrasesLoading] =
+    useState(false);
+  const [impressionPhrasesError, setImpressionPhrasesError] = useState<
+    string | null
+  >(null);
 
   const exampleKeywords = ["大谷翔平", "トヨタ自動車株式会社", "生成AI"];
 
   const handleExampleClick = (example: string) => {
-    setKeyword(example);
+    setMain_topic(example);
     // フォーカスを当てる
     if (inputRef.current) {
       inputRef.current.focus();
@@ -246,8 +269,8 @@ const WisdomFountain = () => {
   };
 
   useEffect(() => {
-    console.log("Updated Phrases:", phrases);
-  }, [phrases]);
+    console.log("Updated Topics:", topics);
+  }, [topics]);
 
   useEffect(() => {
     console.log("Updated Glossary:", glossary);
@@ -291,19 +314,19 @@ const WisdomFountain = () => {
 
       const typeText = () => {
         if (isTyping) {
-          if (text.length < keyword.length) {
-            text += keyword[text.length];
+          if (text.length < main_topic.length) {
+            text += main_topic[text.length];
             setLoadingText(text);
             setTimeout(typeText, 100);
-          } else if (text.length === keyword.length) {
+          } else if (text.length === main_topic.length) {
             text += "　";
             currentKeyword =
               keywords[Math.floor(Math.random() * keywords.length)];
             setLoadingText(text);
             setTimeout(typeText, 250);
           } else {
-            if (text.length < keyword.length + currentKeyword.length + 1) {
-              text += currentKeyword[text.length - keyword.length - 1];
+            if (text.length < main_topic.length + currentKeyword.length + 1) {
+              text += currentKeyword[text.length - main_topic.length - 1];
               setLoadingText(text);
               setTimeout(typeText, 100);
             } else {
@@ -316,7 +339,7 @@ const WisdomFountain = () => {
 
       const eraseText = () => {
         if (!isTyping) {
-          if (text.length > keyword.length + 1) {
+          if (text.length > main_topic.length + 1) {
             text = text.slice(0, -1);
             setLoadingText(text);
             setTimeout(eraseText, 50);
@@ -337,102 +360,101 @@ const WisdomFountain = () => {
     } else {
       setLoadingText("");
     }
-  }, [isLoading, keyword]);
+  }, [isLoading, main_topic]);
 
-  interface PhraseItem {
-    quote: string;
+  interface TopicItem {
+    information: string;
     background: string;
     tags: string[];
   }
 
-  const generatePhrases = async () => {
-    setPhrasesLoading(true);
-    setPhrasesError(null);
+  const generateTopics = async () => {
+    setTopicsLoading(true);
+    setTopicsError(null);
     try {
       const systemPrompt =
-        "与えられたキーワードに関連する、興味深くて知的な会話のためのフレーズを生成してください。常に指定されたJSONフォーマットで回答してください。ハルシネーションを起こさないでください。";
+        "与えられたキーワードに関連する、興味深い情報を生成してください。常に指定されたJSONフォーマットで回答してください。ハルシネーションを起こさないでください。";
       const userPrompt = `
-      キーワード「${keyword}」について、マニアやクライアントから「こいつわかってるな」「お、そんなことまで知ってるんだ」「君、賢いね」と思わせるような、短くて知り合いに話すようなセリフを5つ生成してください。各セリフには素人にもわかる詳しい200文字以上の背景説明を付けてください。
+      メイントピック「${main_topic}」について、注目すべき情報を5つ生成してください。各情報は30文字以上にまとめて、素人にもわかる詳しい200文字以上の背景説明を付けてください。
 
-      セリフの中で重要なキーワードや専門用語や大事なポイントには<keyword>タグを付けてください。例: <keyword>重要な用語</keyword>
+      情報の中で重要なキーワードや専門用語や大事なポイントには<keyword>タグを付けてください。例: <keyword>重要な用語</keyword>
       背景説明には<keyword>タグを使用しないでください。
 
       以下の4つのタグを当てはまる場合にのみ付けてください：
       - トレンド：最新の動向や流行を示す情報
       - 問題提起：業界や分野における課題や問題点を指摘する情報
-      - 競合情報：${keyword}の競合他社や競合製品に関する洞察
+      - 競合情報：${main_topic}の競合他社や競合製品に関する洞察
       - 表彰・称賛：業界内での評価や成果に関する情報
 
-      これらのタグに関連する情報を含むセリフを優先的に生成してください。
+      これらのタグに関連する情報を含む情報を優先的に生成してください。
 
       以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
 
       {
-        "phrases": [
+        "topics": [
           {
-            "quote": "セリフ1（<keyword>タグ付き）",
+            "information": "情報1（<keyword>タグ付き）",
             "background": "背景説明1（タグなし）",
             "tags": ["トレンド", "競合情報"]
           },
           {
-            "quote": "セリフ2（<keyword>タグ付き）",
+            "information": "情報2（<keyword>タグ付き）",
             "background": "背景説明2（タグなし）",
             "tags": ["問題提起"]
           }
         ]
       }`;
 
-      const phrasesText = await generateWithPerplexity(
-        systemPrompt,
-        userPrompt
-      );
+      const topicsText = await generateWithPerplexity(systemPrompt, userPrompt);
 
       try {
-        const phrasesJson = cleanAndParseJSON("セリフ", phrasesText, keyword);
-        console.log("Parsed phrases JSON:", phrasesJson);
+        const topicsJson = cleanAndParseJSON("話題", topicsText, main_topic);
+        console.log("Parsed topics JSON:", topicsJson);
 
-        if (!phrasesJson.phrases || !Array.isArray(phrasesJson.phrases)) {
-          throw new Error("Invalid phrases structure in response");
+        if (!topicsJson.topics || !Array.isArray(topicsJson.topics)) {
+          throw new Error("Invalid topics structure in response");
         }
 
-        const newPhrases = phrasesJson.phrases.map((item: PhraseItem) => ({
-          quote: item.quote,
+        const newTopics = topicsJson.topics.map((item: TopicItem) => ({
+          information: item.information,
           background: item.background.replace(/<\/?keyword>/g, ""),
           tags: item.tags || [],
         }));
 
-        setPhrases(newPhrases);
+        return newTopics;
       } catch (error) {
-        console.error("フレーズの処理中にエラーが発生しました:", error);
+        console.error("トピックの処理中にエラーが発生しました:", error);
         const errorMessage =
           error instanceof Error ? error.message : String(error);
-        setPhrasesError(
-          `フレーズの生成中にエラーが発生しました: ${errorMessage}`
+        setTopicsError(
+          `トピックの生成中にエラーが発生しました: ${errorMessage}`
         );
 
         // GAにエラーイベントを送信
         sendGAEvent("content_generation_error", {
-          keyword,
-          section: "phrases",
+          keyword: main_topic,
+          section: "topics",
           error: errorMessage,
         });
+        return []; // エラーが発生した場合でも空の配列を返す
       }
     } catch (error) {
       console.error("Detailed error:", error);
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      setPhrasesError(
+      setTopicsError(
         `コンテンツの生成中にエラーが発生しました。もう一度お試しください。`
       );
 
       // GAにエラーイベントを送信
       sendGAEvent("content_generation_error", {
-        keyword,
-        section: "phrases",
+        keyword: main_topic,
+        section: "topics",
         error: errorMessage,
       });
+      return []; // エラーが発生した場合でも空の配列を返す
     } finally {
-      setPhrasesLoading(false);
+      setTopicsLoading(false);
     }
   };
 
@@ -443,7 +465,7 @@ const WisdomFountain = () => {
       const systemPrompt =
         "与えられたキーワードに関連する面白い雑学を生成してください。常に指定されたJSONフォーマットで回答してください。ハルシネーションを起こさないでください。";
       const userPrompt = `
-      キーワード「${keyword}」に関連する面白い雑学を5つ生成してください。各雑学は100文字程度で、興味深く、記憶に残るものにしてください。
+      メイントピック「${main_topic}」に関連する面白い雑学を5つ生成してください。各雑学は100文字程度で、興味深く、記憶に残るものにしてください。
       雑学の文章の中で面白いポイントや強調すべきポイントには、文中に<keyword>タグを付けてください。
 
       以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
@@ -465,7 +487,7 @@ const WisdomFountain = () => {
       );
 
       try {
-        const triviasJson = cleanAndParseJSON("雑学", triviasText, keyword);
+        const triviasJson = cleanAndParseJSON("雑学", triviasText, main_topic);
 
         if (!triviasJson.trivias || !Array.isArray(triviasJson.trivias)) {
           throw new Error("Invalid trivias structure in response");
@@ -477,7 +499,7 @@ const WisdomFountain = () => {
           })
         );
 
-        setTrivias(newTrivias);
+        return newTrivias;
       } catch (error) {
         console.error("雑学の処理中にエラーが発生しました:", error);
         const errorMessage =
@@ -486,10 +508,11 @@ const WisdomFountain = () => {
 
         // GAにエラーイベントを送信
         sendGAEvent("content_generation_error", {
-          keyword,
+          keyword: main_topic,
           section: "trivias",
           error: errorMessage,
         });
+        return []; // エラーが発生した場合でも空の配列を返す
       }
     } catch (error) {
       console.error("Detailed error:", error);
@@ -501,10 +524,11 @@ const WisdomFountain = () => {
 
       // GAにエラーイベントを送信
       sendGAEvent("content_generation_error", {
-        keyword,
+        keyword: main_topic,
         section: "trivias",
         error: errorMessage,
       });
+      return []; // エラーが発生した場合でも空の配列を返す
     } finally {
       setTriviasLoading(false);
     }
@@ -517,11 +541,11 @@ const WisdomFountain = () => {
       const systemPrompt =
         "与えられたキーワードに関連する重要な用語とその定義を生成してください。常に指定されたJSONフォーマットで回答してください。ハルシネーションを起こさないでください。";
       const userPrompt = `
-      キーワード「${keyword}」に関連する8つの重要な用語とその素人にもわかる詳しい100文字以上の説明を日本語で生成してください。
+      メイントピック「${main_topic}」に関連する8つの重要な用語とその素人にもわかる詳しい100文字以上の説明を日本語で生成してください。
       以下の点に注意してください：
       1. 人物名やキャラクター名は含めないでください。
-      2. 一般的な概念、技術用語、プロセス、理論などに焦点を当ててください。キーワード「${keyword}」との関連性も含めてください。
-      3. 各用語は、キーワードに直接関連し、その分野の理解を深めるものを選んでください。
+      2. 一般的な概念、技術用語、プロセス、理論などに焦点を当ててください。メイントピック「${main_topic}」との関連性も含めてください。
+      3. 各用語は、メイントピックに直接関連し、その分野の理解を深めるものを選んでください。
 
       以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
 
@@ -548,11 +572,15 @@ const WisdomFountain = () => {
 
       // 用語集の処理
       try {
-        const glossaryJson = cleanAndParseJSON("用語集", glossaryText, keyword);
-        console.log("Parsed glossary JSON:", glossaryJson);
-        setGlossary(
-          Array.isArray(glossaryJson.glossary) ? glossaryJson.glossary : []
+        const glossaryJson = cleanAndParseJSON(
+          "用語集",
+          glossaryText,
+          main_topic
         );
+        console.log("Parsed glossary JSON:", glossaryJson);
+        return Array.isArray(glossaryJson.glossary)
+          ? glossaryJson.glossary
+          : [];
       } catch (error) {
         console.error("用語集の処理中にエラーが発生しました:", error);
         const errorMessage =
@@ -561,10 +589,11 @@ const WisdomFountain = () => {
 
         // GAにエラーイベントを送信
         sendGAEvent("content_generation_error", {
-          keyword: keyword,
+          keyword: main_topic,
           section: "glossary",
           error: errorMessage,
         });
+        return []; // エラーが発生した場合でも空の配列を返す
       }
     } catch (error) {
       console.error("Detailed error:", error);
@@ -582,10 +611,11 @@ const WisdomFountain = () => {
 
       // GAにエラーイベントを送信
       sendGAEvent("content_generation_error", {
-        keyword: keyword,
+        keyword: main_topic,
         section: "glossary",
         error: errorMessage,
       });
+      return []; // エラーが発生した場合でも空の配列を返す
     } finally {
       setGlossaryLoading(false);
     }
@@ -598,9 +628,9 @@ const WisdomFountain = () => {
       const systemPrompt =
         "与えられたキーワードに関連する重要な人物の情報を生成してください。常に指定されたJSONフォーマットで回答してください。ハルシネーションを起こさないでください。";
       const userPrompt = `
-        キーワード「${keyword}」に関連する重要な人物を5人選び、以下の情報を日本語で生成してください：
+        メイントピック「${main_topic}」に関連する重要な人物を5人選び、以下の情報を日本語で生成してください：
         1. その人物の名前
-        2. 素人にもわかる詳しい100文字以上の説明（その人物の経歴や業績に加え、キーワード「${keyword}」との関連性も含めてください）
+        2. 素人にもわかる詳しい100文字以上の説明（その人物の経歴や業績に加え、メイントピック「${main_topic}」との関連性も含めてください）
 
         以下のJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
         実在する人物を選んでください。ハルシネーションを起こさないでください。
@@ -609,11 +639,11 @@ const WisdomFountain = () => {
           "keyPersons": [
             {
               "name": "人物名1",
-              "description": "人物の説明1（キーワードとの関連性を含む）"
+              "description": "人物の説明1（メイントピックとの関連性を含む）"
             },
             {
               "name": "人物名2",
-              "description": "人物の説明2（キーワードとの関連性を含む）"
+              "description": "人物の説明2（メイントピックとの関連性を含む）"
             }
           ]
         }`;
@@ -626,14 +656,14 @@ const WisdomFountain = () => {
       const keyPersonJson = cleanAndParseJSON(
         "キーパーソン",
         keyPersonText,
-        keyword
+        main_topic
       );
       console.log("Parsed key person JSON:", keyPersonJson);
 
       const newKeyPersons = Array.isArray(keyPersonJson.keyPersons)
         ? keyPersonJson.keyPersons
         : [];
-      setKeyPersons(newKeyPersons);
+      return newKeyPersons;
     } catch (error) {
       console.error("キーパーソンの処理中にエラーが発生しました:", error);
       const errorMessage =
@@ -644,10 +674,11 @@ const WisdomFountain = () => {
 
       // GAにエラーイベントを送信
       sendGAEvent("content_generation_error", {
-        keyword,
+        keyword: main_topic,
         section: "keyPersons",
         error: errorMessage,
       });
+      return []; // エラーが発生した場合でも空の配列を返す
     } finally {
       setKeyPersonsLoading(false);
     }
@@ -660,16 +691,16 @@ const WisdomFountain = () => {
 
     // GAイベントを確実に送信
     sendGAEvent("content_generation_error", {
-      keyword,
+      keyword: main_topic,
       section,
       error: errorMessage,
     });
 
     // セクション別のエラー状態を更新
     switch (section) {
-      case "phrases":
-        setPhrasesError(
-          `フレーズの生成中にエラーが発生しました: ${errorMessage}`
+      case "topics":
+        setTopicsError(
+          `トピックの生成中にエラーが発生しました: ${errorMessage}`
         );
         break;
       case "trivias":
@@ -691,21 +722,6 @@ const WisdomFountain = () => {
         setError(`コンテンツの生成中にエラーが発生しました: ${errorMessage}`);
     }
   };
-
-  const generateExplanation = async () => {
-    setExplanationLoading(true);
-    setExplanationError(null);
-    try {
-      const keywordExplanation = await getKeywordExplanation(keyword);
-      setExplanation(keywordExplanation);
-    } catch (error) {
-      console.error("用語の解説生成中にエラーが発生しました:", error);
-      setExplanationError("用語の解説を生成できませんでした。");
-    } finally {
-      setExplanationLoading(false);
-    }
-  };
-
   // アニメーション用のスプリングを定義
   const props = useSpring({
     width: `${progress}%`,
@@ -743,7 +759,7 @@ const WisdomFountain = () => {
   };
 
   const generateContent = async () => {
-    if (keyword.trim() === "") return;
+    if (main_topic.trim() === "") return;
     setShowResults(true);
     setIsLoading(true);
     setIsThinking(true);
@@ -755,56 +771,57 @@ const WisdomFountain = () => {
 
     sendGAEvent("search", {
       event_category: "Search",
-      keyword: keyword,
+      keyword: main_topic,
     });
 
     // 結果をクリア
-    setPhrases([]);
+    setTopics([]);
     setTrivias([]);
     setGlossary([]);
     setKeyPersons([]);
-    setExplanation("");
+    setImpressionPhrases([]);
 
     // ローディング状態をセット
-    setPhrasesLoading(true);
+    setTopicsLoading(true);
     setTriviasLoading(true);
     setGlossaryLoading(true);
     setKeyPersonsLoading(true);
-    setExplanationLoading(true);
+    setImpressionPhrasesLoading(true);
 
     try {
-      await Promise.all([
-        generateExplanation()
-          .then(updateProgress)
-          .catch((error) => {
-            displaySectionError("用語の解説", error);
+      // 各生成関数を並列に実行
+      const [topicsResult, triviasResult, glossaryResult, keyPersonsResult] =
+        await Promise.all([
+          generateTopics().then((result) => {
+            setTopics(result);
             updateProgress();
+            return result;
           }),
-        generatePhrases()
-          .then(updateProgress)
-          .catch((error) => {
-            displaySectionError("セリフ", error);
+          generateTrivias().then((result) => {
+            setTrivias(result);
             updateProgress();
+            return result;
           }),
-        generateTrivias()
-          .then(updateProgress)
-          .catch((error) => {
-            displaySectionError("雑学", error);
+          generateGlossary().then((result) => {
+            setGlossary(result);
             updateProgress();
+            return result;
           }),
-        generateGlossary()
-          .then(updateProgress)
-          .catch((error) => {
-            displaySectionError("用語集", error);
+          generateKeyPersons().then((result) => {
+            setKeyPersons(result);
             updateProgress();
+            return result;
           }),
-        generateKeyPersons()
-          .then(updateProgress)
-          .catch((error) => {
-            displaySectionError("キーパーソン", error);
-            updateProgress();
-          }),
-      ]);
+        ]);
+
+      const newImpressionPhrases = await generateImpressionPhrases(
+        topicsResult,
+        triviasResult,
+        glossaryResult,
+        keyPersonsResult
+      );
+      setImpressionPhrases(newImpressionPhrases);
+      updateProgress();
     } catch (error) {
       displaySectionError("general", error);
     } finally {
@@ -822,7 +839,7 @@ const WisdomFountain = () => {
   // エラーをクリアする関数
   const clearErrors = () => {
     setError(null);
-    setPhrasesError(null);
+    setTopicsError(null);
     setTriviasError(null);
     setGlossaryError(null);
     setKeyPersonsError(null);
@@ -855,6 +872,57 @@ const WisdomFountain = () => {
         modal_name: "about",
         action: "open",
       });
+    }
+  };
+
+  // generateImpressionPhrases関数をコンポーネント内に移動
+  const generateImpressionPhrases = async (
+    topics: Topic[],
+    trivias: Trivia[],
+    glossary: GlossaryItem[],
+    keyPersons: KeyPerson[]
+  ): Promise<ImpressionPhrase[]> => {
+    setImpressionPhrasesLoading(true);
+    setImpressionPhrasesError(null);
+    try {
+      const context = JSON.stringify({
+        topics: topics.map((t) => t.information),
+        trivias: trivias.map((t) => t.content),
+        glossary: glossary.map((g) => `${g.term}: ${g.definition}`),
+        keyPersons: keyPersons.map((k) => `${k.name}: ${k.description}`),
+      });
+
+      const prompt = `メイントピック「${main_topic}」について、以下の情報をもとに、上司やクライアントから「こいつわかってるな」「お、そんなことまで知ってるんだ」「君、賢いね」と思わせるようなセリフをメイントピックを含めて6個生成してください。
+      各セリフは100文字以内にしてください。セリフの中でメイントピック「${main_topic}」と重要なキーワードは<keyword>タグで囲んでください。
+      「〜ですよね」という口調にしてください。
+      「実は」「案外」「データによると」「注目すべきなのは」「マクロ的に見ると」「本質的には」など知的に聞こえるワードを適切に含めてください。
+
+      コンテキスト:
+      ${context}
+
+      出力形式:
+      以下のようにJSONフォーマットで出力してください。正しいJSONのみを返し、追加の説明やコメントや改行や制御文字は含めないでください。
+
+      [
+        {
+          "content": "セリフ1（<keyword>タグ付き）"
+        },
+        {
+          "content": "セリフ2（<keyword>タグ付き）"
+        }
+      ]
+      `;
+
+      const response = await generateWithGemini(prompt);
+      console.log(response);
+      const impressionPhrases: ImpressionPhrase[] = JSON.parse(response);
+      return impressionPhrases;
+    } catch (error) {
+      console.error("賢く聞こえるセリフの生成中にエラーが発生しました:", error);
+      setImpressionPhrasesError("賢く聞こえるセリフを生成できませんでした。");
+      return [];
+    } finally {
+      setImpressionPhrasesLoading(false);
     }
   };
 
@@ -902,8 +970,8 @@ const WisdomFountain = () => {
                 </p>
               )}
               <SearchInput
-                keyword={keyword}
-                setKeyword={setKeyword}
+                keyword={main_topic}
+                setKeyword={setMain_topic}
                 generateContent={generateContent}
                 isLoading={isLoading}
                 inputRef={inputRef}
@@ -938,53 +1006,86 @@ const WisdomFountain = () => {
             className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4"
           >
             {/* 用語の解説セクション */}
-            <div className="bg-white rounded-lg shadow-md border border-purple-100 col-span-1 md:col-span-2 max-w-4xl mx-auto w-full">
-              <div className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
-                <h2 className="text-xl font-semibold text-gray-800 tracking-wider flex items-center">
-                  <Star className="w-5 h-5 mr-2" />
-                  用語の解説
+            <div className="bg-white rounded-lg shadow-md border border-purple-100 col-span-1 md:col-span-2 w-full">
+              <div className="py-6 px-4 bg-gradient-to-r from-purple-300 to-blue-300">
+                <h2 className="text-2xl font-semibold text-gray-800 tracking-wider flex items-center">
+                  <MessageSquare className="w-7 h-7 mr-2" />
+                  賢く聞こえるセリフ
                 </h2>
               </div>
-              <div className="py-6 px-4">
-                {explanationLoading ? (
-                  <ExplanationSkeletonLoader />
-                ) : explanationError ? (
+              <div className="py-6 px-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                {impressionPhrasesLoading ? (
+                  <ImpressionPhrasesSkeletonLoader />
+                ) : impressionPhrasesError ? (
                   <ErrorCard
-                    error={explanationError}
-                    retry={() => generateExplanation()}
+                    error={impressionPhrasesError}
+                    retry={() =>
+                      generateImpressionPhrases(
+                        topics,
+                        trivias,
+                        glossary,
+                        keyPersons
+                      )
+                    }
                   />
                 ) : (
-                  <p className="text-lg text-gray-700 leading-relaxed">
-                    {explanation.split(/<keyword>|<\/keyword>/).map((part, i) =>
-                      i % 2 === 0 ? (
-                        part
-                      ) : (
-                        <span key={i} className="text-purple-800 font-semibold">
-                          {part}
-                        </span>
-                      )
-                    )}
-                  </p>
+                  <>
+                    {impressionPhrases.map((phrase, index) => (
+                      <div
+                        key={index}
+                        className="bg-purple-50 rounded-lg py-8 px-6 shadow-sm border border-purple-200 relative overflow-hidden flex items-center"
+                      >
+                        {/* 背景の引用符 */}
+                        <div className="absolute -top-1 -left-1 text-purple-300 text-8xl font-serif opacity-30">
+                          ”
+                        </div>
+                        {/* セリフ本文 */}
+                        <div className="relative z-10">
+                          <p className="text-lg font-semibold text-purple-800 italic leading-9">
+                            {phrase.content
+                              .split(/<keyword>|<\/keyword>/)
+                              .map((part, i) =>
+                                i % 2 === 0 ? (
+                                  part
+                                ) : (
+                                  <span key={i} className="font-bold text-2xl">
+                                    {part}
+                                  </span>
+                                )
+                              )}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </>
                 )}
               </div>
             </div>
 
-            {/* セリフセクション */}
+            {/* 横線と参考情報のテキストを追加 */}
+            <div className="col-span-1 md:col-span-2 w-full mt-4 mb-8">
+              <hr className="my-8 border-t-2 border-gray-300" />
+              <p className="text-center text-xl font-bold text-gray-700">
+                以下、セリフ生成に使用した情報
+              </p>
+            </div>
+
+            {/* 話題セクション */}
             <div className="bg-white rounded-lg shadow-md border border-purple-100 col-span-1">
-              <div className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
+              <div className="py-6 px-4 bg-gradient-to-r from-purple-100 to-blue-100">
                 <h2 className="text-xl font-semibold text-gray-800 tracking-wider flex items-center">
-                  <MessageSquare className="w-5 h-5 mr-2" />
-                  賢く聞こえるセリフ
+                  <Star className="w-5 h-5 mr-2" />
+                  注目の話題
                 </h2>
               </div>
               <div className="py-6 px-4">
-                {phrasesLoading ? (
-                  <PhrasesSkeletonLoader />
-                ) : phrasesError ? (
-                  <ErrorCard error={phrasesError} retry={generatePhrases} />
+                {topicsLoading ? (
+                  <TopicsSkeletonLoader />
+                ) : topicsError ? (
+                  <ErrorCard error={topicsError} retry={generateTopics} />
                 ) : (
                   <div className="space-y-6">
-                    {phrases.map((phrase, index) => (
+                    {topics.map((topic, index) => (
                       <div
                         key={index}
                         className="bg-white rounded-lg shadow-sm border border-purple-100"
@@ -993,10 +1094,10 @@ const WisdomFountain = () => {
                           <div className="flex items-center">
                             <h3 className="text-base text-purple-800 tracking-wide flex items-center">
                               <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
-                              セリフ {index + 1}
+                              話題 {index + 1}
                             </h3>
                             <div className="flex ml-6">
-                              {phrase.tags.map((tag, tagIndex) => (
+                              {topic.tags.map((tag, tagIndex) => (
                                 <span
                                   key={tagIndex}
                                   className={`text-xs font-bold ${getTagColor(
@@ -1011,7 +1112,7 @@ const WisdomFountain = () => {
                         </div>
                         <div className="pt-4 pb-6 px-4">
                           <p className="text-lg font-semibold text-purple-800 leading-8">
-                            {phrase.quote
+                            {topic.information
                               .split(/<keyword>|<\/keyword>/)
                               .map((part, i) =>
                                 i % 2 === 0 ? (
@@ -1024,7 +1125,7 @@ const WisdomFountain = () => {
                               )}
                           </p>
                           <p className="text-sm text-gray-600 mt-2">
-                            {phrase.background}
+                            {topic.background}
                           </p>
                         </div>
                       </div>
@@ -1036,7 +1137,7 @@ const WisdomFountain = () => {
 
             {/* 雑学セクション */}
             <div className="bg-white rounded-lg shadow-md border border-purple-100 col-span-1">
-              <div className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
+              <div className="py-6 px-4 bg-gradient-to-r from-purple-100 to-blue-100">
                 <h2 className="text-xl font-semibold text-gray-800 tracking-wider flex items-center">
                   <Sparkles className="w-5 h-5 mr-2" />
                   面白い雑学
@@ -1086,7 +1187,7 @@ const WisdomFountain = () => {
 
             {/* 用語集セクション */}
             <div className="bg-white rounded-lg shadow-md border border-purple-100 col-span-1">
-              <div className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
+              <div className="py-6 px-4 bg-gradient-to-r from-purple-100 to-blue-100">
                 <h2 className="text-xl font-semibold text-gray-800 tracking-wider flex items-center">
                   <BookOpen className="w-5 h-5 mr-2" />
                   関連用語
@@ -1126,7 +1227,7 @@ const WisdomFountain = () => {
 
             {/* キーパーソンセクション */}
             <div className="bg-white rounded-lg shadow-md border border-purple-100 col-span-1">
-              <div className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
+              <div className="py-6 px-4 bg-gradient-to-r from-purple-100 to-blue-100">
                 <h2 className="text-xl font-semibold text-gray-800 tracking-wider flex items-center">
                   <User className="w-5 h-5 mr-2" />
                   キーパーソン
@@ -1315,7 +1416,7 @@ function SearchInput({
   );
 }
 
-function PhrasesSkeletonLoader() {
+function TopicsSkeletonLoader() {
   return (
     <>
       {[1, 2, 3].map((_, index) => (
@@ -1483,7 +1584,7 @@ function HowToUseModal({
           </p>
           <p>
             3. 結果を確認:
-            生成された「賢く聞こえるセリフ」、「面白い雑学」、「関連用語」、「キーパーソン」の情報を確認します。
+            生成された「注目の話題」、「面白い雑学」、「関連用語」、「キーパーソン」の情報を確認します。
           </p>
           <p>
             4. 情報を活用:
@@ -1528,13 +1629,24 @@ function AboutModal({
 }
 
 // コンポーネントの外部に新しいスケルトンローダーを追加
-function ExplanationSkeletonLoader() {
+function ImpressionPhrasesSkeletonLoader() {
   return (
-    <div className="space-y-2">
-      <Skeleton className="h-4 w-full" />
-      <Skeleton className="h-4 w-5/6" />
-      <Skeleton className="h-4 w-4/6" />
-    </div>
+    <>
+      {[...Array(4)].map((_, index) => (
+        <div
+          key={index}
+          className="bg-purple-50 rounded-lg py-8 px-6 shadow-sm border border-purple-200 relative overflow-hidden flex items-center"
+        >
+          <div className="absolute -top-1 -left-1 text-purple-300 text-12xl font-serif opacity-30">
+            ”
+          </div>
+          <div className="relative z-10 w-full mx-auto">
+            <Skeleton className="h-6 w-full mb-2" />
+            <Skeleton className="h-6 w-4/5" />
+          </div>
+        </div>
+      ))}
+    </>
   );
 }
 
