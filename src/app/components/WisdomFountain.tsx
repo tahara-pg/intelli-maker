@@ -239,9 +239,6 @@ const WisdomFountain = () => {
   const [isThinking, setIsThinking] = useState(false);
   const [isHowToUseOpen, setIsHowToUseOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
-  const [explanation, setExplanation] = useState("");
-  const [explanationLoading, setExplanationLoading] = useState(false);
-  const [explanationError, setExplanationError] = useState<string | null>(null);
   const [loadingText, setLoadingText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState(0);
@@ -1646,7 +1643,7 @@ function AboutModal({
               <b>セリフを口にすれば、きっと周りからの印象が変わるはず。</b>
             </p>
             <p>
-              <b>"賢い"は、作れる。</b>
+              <b>&ldquo;賢い&rdquo;は、作れる。</b>
             </p>
           </div>
           <div className="space-y-2 pb-4">
