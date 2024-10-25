@@ -194,7 +194,7 @@ async function getKeywordExplanation(keyword: string): Promise<string> {
   const systemPrompt =
     "与えられたキーワードについて簡潔な解説を提供してください。ハルシネーションを起こさないでください。";
   const userPrompt = `キーワード「${keyword}」について、100文字程度の簡潔な解説を日本語で生成してください。重要な部分は<keyword>タグで囲んでください。`;
-
+  ``;
   try {
     const explanation = await generateWithPerplexity(systemPrompt, userPrompt);
     return explanation;
@@ -268,7 +268,7 @@ const WisdomFountain = () => {
         "歴史",
         "最新ニュース",
         "海外の反応",
-        "話題",
+        "注目の話題",
         "影響力",
         "課題",
         "将来性",
@@ -283,6 +283,7 @@ const WisdomFountain = () => {
         "教育的観点",
         "心理的影響",
         "科学的根拠",
+        "豆知識",
       ];
       let isTyping = true;
       let text = "";
