@@ -24,7 +24,7 @@ export async function POST(request: Request) {
         Authorization: `Bearer ${PERPLEXITY_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "llama-3.1-sonar-small-128k-online", // 使用するモデルを指定
+        model: "llama-3.1-sonar-huge-128k-online", // 使用するモデルを指定
         messages: [
           // システムプロンプトとユーザープロンプトを設定
           { role: "system", content: systemPrompt },
