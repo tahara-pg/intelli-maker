@@ -1004,13 +1004,7 @@ const WisdomFountain = () => {
           >
             {/* 用語の解説セクション */}
             <div className="bg-white rounded-lg shadow-md border border-purple-100 col-span-1 md:col-span-2 w-full">
-              <div className="py-6 px-4 bg-gradient-to-r from-purple-200 to-purple-300">
-                <h2 className="text-2xl font-semibold text-gray-800 tracking-wider flex items-center">
-                  <MessageSquare className="w-7 h-7 mr-3" />
-                  賢く聞こえるセリフ
-                </h2>
-              </div>
-              <div className="py-6 px-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="py-8 px-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 {impressionPhrasesLoading ? (
                   <ImpressionPhrasesSkeletonLoader />
                 ) : impressionPhrasesError ? (
