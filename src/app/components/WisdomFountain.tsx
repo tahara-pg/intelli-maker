@@ -254,7 +254,7 @@ const WisdomFountain = () => {
     string | null
   >(null);
 
-  const exampleKeywords = ["大谷翔平", "トヨタ自動車株式会社", "生成AI"];
+  const exampleKeywords = ["大谷翔平", "トヨタ自動車株式会社", "生成AI", "プロジェクト管理"];
 
   const handleExampleClick = (example: string) => {
     setMain_topic(example);
