@@ -1078,7 +1078,7 @@ const WisdomFountain = () => {
 
             {/* 横線と参考情報のテキストを追加 */}
             <div className="col-span-1 md:col-span-2 w-full mt-4 mb-8">
-              <hr className="my-8 border-t-2 border-gray-300" />
+              <hr className="my-8 border-t-2 border-gray-300 border-dashed" />
               <p className="text-center text-xl font-bold text-gray-700">
                 以下、セリフ生成に使用した情報
               </p>
