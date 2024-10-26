@@ -19,7 +19,6 @@ import {
   User,
   Trophy,
   RefreshCw,
-  MessageSquare,
   X,
   Search,
   Check,
