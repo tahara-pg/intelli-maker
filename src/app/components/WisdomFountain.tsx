@@ -1004,7 +1004,7 @@ const WisdomFountain = () => {
           >
             {/* 用語の解説セクション */}
             <div className="bg-white rounded-lg shadow-md border border-purple-100 col-span-1 md:col-span-2 w-full">
-              <div className="py-6 px-4 bg-gradient-to-r from-purple-300 to-blue-300">
+              <div className="py-6 px-4 bg-gradient-to-r from-purple-200 to-blue-200">
                 <h2 className="text-2xl font-semibold text-gray-800 tracking-wider flex items-center">
                   <MessageSquare className="w-7 h-7 mr-2" />
                   賢く聞こえるセリフ
@@ -1030,22 +1030,39 @@ const WisdomFountain = () => {
                     {impressionPhrases.map((phrase, index) => (
                       <div
                         key={index}
-                        className="bg-purple-50 rounded-lg py-8 px-6 shadow-sm border border-purple-200 relative overflow-hidden flex items-center"
+                        className={`${
+                          index % 2 === 0
+                            ? "bg-purple-50 border-purple-200"
+                            : "bg-blue-50 border-blue-200"
+                        } rounded-lg py-8 px-6 shadow-sm border relative overflow-hidden flex items-center`}
                       >
                         {/* 背景の引用符 */}
-                        <div className="absolute -top-1 -left-1 text-purple-300 text-8xl font-serif opacity-30">
+                        <div
+                          className={`absolute -top-1 -left-1 ${
+                            index % 2 === 0
+                              ? "text-purple-500"
+                              : "text-blue-500"
+                          } text-8xl font-serif opacity-30`}
+                        >
                           ”
                         </div>
                         {/* セリフ本文 */}
                         <div className="relative z-10">
-                          <p className="text-lg font-semibold text-purple-800 italic leading-9">
+                          <p className="text-xl font-semibold text-gray-800 italic leading-9">
                             {phrase.content
                               .split(/<keyword>|<\/keyword>/)
                               .map((part, i) =>
                                 i % 2 === 0 ? (
                                   part
                                 ) : (
-                                  <span key={i} className="font-bold text-2xl">
+                                  <span
+                                    key={i}
+                                    className={`font-bold text-2xl ${
+                                      index % 2 === 0
+                                        ? "text-purple-800"
+                                        : "text-blue-800"
+                                    }`}
+                                  >
                                     {part}
                                   </span>
                                 )
@@ -1069,7 +1086,7 @@ const WisdomFountain = () => {
 
             {/* 話題セクション */}
             <div className="bg-white rounded-lg shadow-md border border-purple-100 col-span-1">
-              <div className="py-6 px-4 bg-gradient-to-r from-purple-100 to-blue-100">
+              <div className="py-6 px-4 bg-gradient-to-r from-purple-100 to-purple-200">
                 <h2 className="text-xl font-semibold text-gray-800 tracking-wider flex items-center">
                   <Star className="w-5 h-5 mr-2" />
                   注目の話題
@@ -1087,7 +1104,7 @@ const WisdomFountain = () => {
                         key={index}
                         className="bg-white rounded-lg shadow-sm border border-purple-100"
                       >
-                        <div className="py-3 px-4 bg-gradient-to-r from-purple-50 to-blue-50 flex justify-between items-center">
+                        <div className="py-3 px-4 bg-gradient-to-r from-purple-50 to-purple-100 flex justify-between items-center">
                           <div className="flex items-center">
                             <h3 className="text-base text-purple-800 tracking-wide flex items-center">
                               <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
@@ -1133,8 +1150,8 @@ const WisdomFountain = () => {
             </div>
 
             {/* 雑学セクション */}
-            <div className="bg-white rounded-lg shadow-md border border-purple-100 col-span-1">
-              <div className="py-6 px-4 bg-gradient-to-r from-purple-100 to-blue-100">
+            <div className="bg-white rounded-lg shadow-md border border-blue-100 col-span-1">
+              <div className="py-6 px-4 bg-gradient-to-r from-blue-100 to-blue-200">
                 <h2 className="text-xl font-semibold text-gray-800 tracking-wider flex items-center">
                   <Sparkles className="w-5 h-5 mr-2" />
                   面白い雑学
@@ -1150,18 +1167,18 @@ const WisdomFountain = () => {
                     {trivias.map((trivia, index) => (
                       <div
                         key={index}
-                        className="bg-white rounded-lg shadow-sm border border-purple-100"
+                        className="bg-white rounded-lg shadow-sm border border-blue-100"
                       >
-                        <div className="py-3 px-4 bg-gradient-to-r from-purple-50 to-blue-50 flex justify-between items-center">
+                        <div className="py-3 px-4 bg-gradient-to-r from-blue-50 to-blue-100 flex justify-between items-center">
                           <div className="flex items-center">
-                            <h3 className="text-base text-purple-800 tracking-wide flex items-center">
+                            <h3 className="text-base text-blue-800 tracking-wide flex items-center">
                               <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
                               雑学 {index + 1}
                             </h3>
                           </div>
                         </div>
                         <div className="pt-4 pb-6 px-4">
-                          <p className="text-lg font-semibold text-purple-800 leading-8">
+                          <p className="text-lg font-semibold text-blue-800 leading-8">
                             {trivia.content
                               .split(/<keyword>|<\/keyword>/)
                               .map((part, i) =>
@@ -1184,7 +1201,7 @@ const WisdomFountain = () => {
 
             {/* 用語集セクション */}
             <div className="bg-white rounded-lg shadow-md border border-purple-100 col-span-1">
-              <div className="py-6 px-4 bg-gradient-to-r from-purple-100 to-blue-100">
+              <div className="py-6 px-4 bg-gradient-to-r from-purple-100 to-purple-200">
                 <h2 className="text-xl font-semibold text-gray-800 tracking-wider flex items-center">
                   <BookOpen className="w-5 h-5 mr-2" />
                   関連用語
@@ -1223,8 +1240,8 @@ const WisdomFountain = () => {
             </div>
 
             {/* キーパーソンセクション */}
-            <div className="bg-white rounded-lg shadow-md border border-purple-100 col-span-1">
-              <div className="py-6 px-4 bg-gradient-to-r from-purple-100 to-blue-100">
+            <div className="bg-white rounded-lg shadow-md border border-blue-100 col-span-1">
+              <div className="py-6 px-4 bg-gradient-to-r from-blue-100 to-blue-200">
                 <h2 className="text-xl font-semibold text-gray-800 tracking-wider flex items-center">
                   <User className="w-5 h-5 mr-2" />
                   キーパーソン
@@ -1243,11 +1260,11 @@ const WisdomFountain = () => {
                     {keyPersons.map((person, index) => (
                       <Card
                         key={index}
-                        className="bg-white rounded-lg shadow-sm border border-purple-100"
+                        className="bg-white rounded-lg shadow-sm border border-blue-100"
                       >
                         <CardContent className="p-6">
                           <div className="flex flex-col">
-                            <h3 className="text-xl font-bold text-purple-800 mb-2">
+                            <h3 className="text-xl font-bold text-blue-800 mb-2">
                               {person.name}
                             </h3>
                             <p className="text-gray-700">
@@ -1421,7 +1438,7 @@ function TopicsSkeletonLoader() {
           key={index}
           className="mb-6 overflow-hidden bg-white rounded-lg shadow-sm border border-purple-100"
         >
-          <CardHeader className="p-6 bg-gradient-to-r from-purple-50 to-blue-50">
+          <CardHeader className="p-6 bg-gradient-to-r from-purple-50 to-purple-100">
             <Skeleton className="h-6 w-1/3" />
           </CardHeader>
           <CardContent className="p-6">
@@ -1502,7 +1519,6 @@ function ErrorCard({ error, retry }: { error: string; retry: () => void }) {
   );
 }
 
-// 新しい TriviaSkeletonLoader コンポーネントを追加
 function TriviaSkeletonLoader() {
   return (
     <>
@@ -1511,7 +1527,7 @@ function TriviaSkeletonLoader() {
           key={index}
           className="bg-white rounded-lg shadow-sm border border-purple-100 mb-6"
         >
-          <div className="py-3 px-4 bg-gradient-to-r from-purple-50 to-blue-50 flex justify-between items-center">
+          <div className="py-3 px-4 bg-gradient-to-r from-blue-50 to-blue-100 flex justify-between items-center">
             <Skeleton className="h-6 w-1/3" />
           </div>
           <div className="pt-4 pb-6 px-4">
@@ -1656,16 +1672,23 @@ function AboutModal({
   );
 }
 
-// コンポーネントの外部に新しいスケルトンローダーを追加
 function ImpressionPhrasesSkeletonLoader() {
   return (
     <>
       {[...Array(4)].map((_, index) => (
         <div
           key={index}
-          className="bg-purple-50 rounded-lg py-8 px-6 shadow-sm border border-purple-200 relative overflow-hidden flex items-center"
+          className={`${
+            index % 2 === 0
+              ? "bg-purple-50 border-purple-200"
+              : "bg-blue-50 border-blue-200"
+          } rounded-lg py-14 px-6 shadow-sm border relative overflow-hidden flex items-center`}
         >
-          <div className="absolute -top-1 -left-1 text-purple-300 text-12xl font-serif opacity-30">
+          <div
+            className={`absolute -top-1 -left-1 text-[96px] font-serif opacity-30 ${
+              index % 2 === 0 ? "text-purple-500" : "text-blue-500"
+            }`}
+          >
             ”
           </div>
           <div className="relative z-10 w-full mx-auto">
